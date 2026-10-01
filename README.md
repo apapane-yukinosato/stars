@@ -24,15 +24,6 @@
 
 歳差運動による天の北極の移動を、紀元前4000年〜西暦22000年の範囲で再現する別ページです。古代ギリシャ時代の北の空、現在のポラリス、将来の北極星候補（アルデラミン、ベガなど）を見比べられます。計算は Vondrák ら（2011）の長期歳差モデルによります（星の固有運動は含みません）。
 
-## GitHub Pages で公開する
-
-1. このブランチを `main` にマージする
-2. リポジトリの **Settings → Pages** を開く
-3. **Build and deployment** の Source を `Deploy from a branch`、Branch を `main` / `/ (root)` にして Save
-4. 数分後に `https://<ユーザー名>.github.io/stars/` で公開されます
-
-ローカルで確認するには、リポジトリ直下で `python3 -m http.server` を起動して `http://localhost:8000/` を開きます。
-
 ## 構成
 
 | パス | 内容 |
