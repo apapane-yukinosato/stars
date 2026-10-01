@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#050914">
+  <title>月の満ち欠けカレンダー｜月齢・月の出入り</title>
+  <meta name="description" content="1か月分の月の形・月齢・月の出と月の入りの時刻、新月・上弦・満月・下弦の日時が分かるカレンダー。">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23050914'/%3E%3Cpath d='M20 5a11 11 0 1 0 0 22a9 9 0 0 1 0-22z' fill='%23f4f1e0'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/pole.css">
+  <link rel="stylesheet" href="css/pages.css">
+</head>
+<body>
+  <header class="head">
+    <p class="crumb"><a href="index.html">← トップ</a></p>
+    <h1>月の満ち欠けカレンダー</h1>
+    <p class="lead">月ごとの月の形、月齢、月の出・月の入りの時刻をカレンダーで確認できます。日をタップすると詳しく表示します。月の形は毎晩21:00（日本時間）のものです。</p>
+  </header>
+
+  <section class="ctrl" aria-label="月と場所の選択">
+    <div class="yearbox">
+      <output id="title" class="year" for="y m">—</output>
+    </div>
+    <div class="row">
+      <button type="button" id="prev">← 前の月</button>
+      <label class="sel"><span class="vh">年</span><select id="y"></select></label>
+      <label class="sel"><span class="vh">月</span><select id="m"></select></label>
+      <button type="button" id="next">次の月 →</button>
+      <button type="button" id="now" class="accent">今月</button>
+      <label class="sel"><span class="vh">観測地</span>
+        <select id="place">
+          <option value="43.0621,141.3544">札幌</option>
+          <option value="38.2682,140.8694">仙台</option>
+          <option value="35.6895,139.6917" selected>東京</option>
+          <option value="35.1815,136.9066">名古屋</option>
+          <option value="34.6937,135.5023">大阪</option>
+          <option value="33.5902,130.4017">福岡</option>
+          <option value="26.2124,127.6809">那覇</option>
+        </select>
+      </label>
+    </div>
+  </section>
+
+  <main class="page-grid" style="grid-template-columns: minmax(0,1.6fr) minmax(0,1fr)">
+    <div>
+      <div class="cal" role="grid" aria-label="月のカレンダー">
+        <div class="dow" aria-hidden="true"><span class="sun">日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span class="sat">土</span></div>
+        <div id="cells" class="cells"></div>
+      </div>
+      <p class="note" style="margin-top:8px">月の出・月の入りは選んだ都市の時刻（日本時間）です。「—」はその日に該当する時刻がないことを表します。</p>
+    </div>
+    <div>
+      <section class="card" id="detail" style="margin-top:0"></section>
+      <section class="card">
+        <h2>この月の新月・満月</h2>
+        <ul id="phases" class="where" style="grid-template-columns:1fr"></ul>
+      </section>
+    </div>
+  </main>
+
+  <footer class="foot">
+    <p>月の位置は簡易的な計算式（P. Schlyter ＋主要な摂動項）による概算です。新月・満月などの時刻は数分程度、月の出入りは数分〜10分程度ずれることがあります。呼び名（十五夜など）は月齢からの目安で、旧暦の日付とは数日ずれる場合があります。</p>
+  </footer>
+
+  <script src="js/astro.js"></script>
+  <script src="js/moon.js"></script>
+</body>
+</html>

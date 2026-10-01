@@ -144,8 +144,15 @@
   function jupiterM(d) { return 19.895 + 0.0830853001 * d; }
   function saturnM(d) { return 316.967 + 0.0334442282 * d; }
 
-  function planetEq(p, jd) {
-    const d = jd - 2451543.5;
+  const OUTER = [
+    { id: 'uranus', ja: '天王星', mag: 5.7, color: '#a8e6ef',
+      el: (d) => [74.0005 + 1.3978e-5 * d, 0.7733 + 1.9e-8 * d, 96.6612 + 3.0565e-5 * d, 19.18171 - 1.55e-8 * d, 0.047318 + 7.45e-9 * d, 142.5905 + 0.011725806 * d] },
+    { id: 'neptune', ja: '海王星', mag: 7.8, color: '#7fa0ff',
+      el: (d) => [131.7806 + 3.0173e-5 * d, 1.77 - 2.55e-7 * d, 272.8461 - 6.027e-6 * d, 30.05826 + 3.313e-8 * d, 0.008606 + 2.15e-9 * d, 260.2471 + 0.005995147 * d] },
+  ];
+
+  /** 惑星の日心黄道座標(観測日の分点, AU)。摂動は木星・土星の主要項のみ */
+  function helioPos(p, d) {
     const [N, i, w, a, e, Mdeg] = p.el(d);
     const M = norm360(Mdeg) * D2R;
     const E = solveKepler(M, e);
@@ -171,9 +178,12 @@
         lat += -0.02 * cosd(2 * Mj - 4 * Ms - 2) + 0.018 * sind(2 * Mj - 6 * Ms - 49);
       }
     }
-    const xh2 = r * cosd(lat) * cosd(lon);
-    const yh2 = r * cosd(lat) * sind(lon);
-    const zh2 = r * sind(lat);
+    return [r * cosd(lat) * cosd(lon), r * cosd(lat) * sind(lon), r * sind(lat)];
+  }
+
+  function planetEq(p, jd) {
+    const d = jd - 2451543.5;
+    const [xh2, yh2, zh2] = helioPos(p, d);
     const s = sunEcl(d);
     const g = [xh2 + s.x, yh2 + s.y, zh2];
     return { vec: normalize(eclToEq(g[0], g[1], g[2], d)), dist: Math.hypot(g[0], g[1], g[2]) };
@@ -296,7 +306,157 @@
     };
   }
 
+  // ---- 太陽系の俯瞰・月相・太陽の位置 ----
+  const ALL_PLANETS = PLANETS.concat(OUTER);
+  const angleBetween = (a, b) => {
+    const c = (a[0] * b[0] + a[1] * b[1] + a[2] * b[2]) / (Math.hypot(a[0], a[1], a[2]) * Math.hypot(b[0], b[1], b[2]));
+    return Math.acos(Math.max(-1, Math.min(1, c))) * R2D;
+  };
+
+  /** 地球と各惑星の日心黄道座標、地心距離、太陽からの離角など */
+  function orrery(jd) {
+    const d = jd - 2451543.5;
+    const s = sunEcl(d);
+    const earth = [-s.x, -s.y, 0];
+    const sunDir = [s.x, s.y, 0]; // 地球から見た太陽の方向
+    const planets = ALL_PLANETS.map((p) => {
+      const h = helioPos(p, d);
+      const g = [h[0] - earth[0], h[1] - earth[1], h[2]];
+      const lonG = norm360(Math.atan2(g[1], g[0]) * R2D);
+      const dl = norm360(lonG - s.lon);
+      return {
+        id: p.id, ja: p.ja, color: p.color, h, rSun: Math.hypot(h[0], h[1], h[2]),
+        rEarth: Math.hypot(g[0], g[1], g[2]), lonG, elong: angleBetween(g, sunDir),
+        east: dl > 0 && dl < 180, // 太陽より東(夕方の空側)にあるか
+      };
+    });
+    return { earth, sunLon: s.lon, rEarthSun: s.r, planets };
+  }
+
+  /** 軌道（その時点の軌道要素による楕円）を n 点の日心座標で返す */
+  function orbitPoints(id, jd, n) {
+    const d = jd - 2451543.5;
+    const pts = [];
+    if (id === 'earth') {
+      const s = sunEcl(d);
+      const e = 0.016709 - 1.151e-9 * d;
+      for (let k = 0; k <= n; k++) {
+        const v = (k / n) * 2 * Math.PI;
+        const r = (1 - e * e) / (1 + e * Math.cos(v));
+        const lon = v + s.w + Math.PI;
+        pts.push([r * Math.cos(lon), r * Math.sin(lon), 0]);
+      }
+      return pts;
+    }
+    const p = ALL_PLANETS.find((q) => q.id === id);
+    const [N, i, w, a, e] = p.el(d);
+    for (let k = 0; k <= n; k++) {
+      const E = (k / n) * 2 * Math.PI;
+      const xv = a * (Math.cos(E) - e), yv = a * Math.sqrt(1 - e * e) * Math.sin(E);
+      const vw = Math.atan2(yv, xv) + w * D2R, r = Math.hypot(xv, yv);
+      pts.push([
+        r * (cosd(N) * Math.cos(vw) - sind(N) * Math.sin(vw) * cosd(i)),
+        r * (sind(N) * Math.cos(vw) + cosd(N) * Math.sin(vw) * cosd(i)),
+        r * Math.sin(vw) * sind(i),
+      ]);
+    }
+    return pts;
+  }
+
+  const ER_KM = 6378.14;
+  /** 月の位相角（月の黄経−太陽の黄経, 0〜360度。0=新月 180=満月） */
+  function moonPhaseAngle(ms) {
+    const jd = jdFromMs(ms);
+    return norm360(moonEq(jd).lon - sunEq(jd).lon);
+  }
+
+  /** 月の情報: 輝面比・月齢・満ち欠けの向き・距離(km) */
+  function moonInfo(ms) {
+    const jd = jdFromMs(ms);
+    const m = moonEq(jd), s = sunEq(jd);
+    const ph = norm360(m.lon - s.lon);
+    const elong = Math.acos(Math.max(-1, Math.min(1, m.vec[0] * s.vec[0] + m.vec[1] * s.vec[1] + m.vec[2] * s.vec[2])));
+    return { phase: ph, illum: (1 - Math.cos(elong)) / 2, age: ph / 12.190749, waxing: ph < 180, elong, distKm: m.dist * ER_KM };
+  }
+
+  /** 期間内の新月・上弦・満月・下弦の時刻（q: 0新月 1上弦 2満月 3下弦）。1分以内の精度で二分探索 */
+  function findPhases(startMs, endMs) {
+    const out = [];
+    const step = 3 * 3600000;
+    const f = (t, target) => ((moonPhaseAngle(t) - target + 540) % 360) - 180; // 目標付近で負→正
+    for (let q = 0; q < 4; q++) {
+      const target = q * 90;
+      let t0 = startMs - 40 * 86400000, f0 = f(t0, target);
+      for (let t = t0 + step; t <= endMs + step; t += step) {
+        const f1 = f(t, target);
+        if (f0 < 0 && f1 >= 0 && Math.abs(f1 - f0) < 90) {
+          let a = t - step, b = t;
+          for (let k = 0; k < 20; k++) { const mid = (a + b) / 2; if (f(mid, target) < 0) a = mid; else b = mid; }
+          const tt = (a + b) / 2;
+          if (tt >= startMs && tt < endMs) out.push({ ms: tt, q });
+        }
+        f0 = f1;
+      }
+    }
+    return out.sort((x, y) => x.ms - y.ms);
+  }
+
+  /** 太陽の位置（観測日の分点の赤経・赤緯・見かけの黄経・距離AU）。光行差と章動を補正 */
+  function sunPos(ms) {
+    const jd = jdFromMs(ms);
+    const d = jd - 2451543.5;
+    const s = sunEq(jd);
+    const T = (jd - 2451545) / 36525;
+    const omega = 125.04 - 1934.136 * T;
+    const lonApp = norm360(s.lon - 0.00569 - 0.00478 * sind(omega));
+    return {
+      ra: norm360(Math.atan2(s.vec[1], s.vec[0]) * R2D), dec: Math.asin(s.vec[2]) * R2D,
+      lon: s.lon, lonApp, dist: s.dist, T, d,
+    };
+  }
+
+  /** 均時差（分）。正なら日時計が平均太陽より進んでいる */
+  function equationOfTime(ms) {
+    const sp = sunPos(ms);
+    const L0 = norm360(280.4664567 + 36000.76983 * sp.T + 0.0003032 * sp.T * sp.T);
+    let e = L0 - 0.0057183 - sp.ra;
+    e = ((e + 540) % 360) - 180;
+    return e * 4;
+  }
+
+  /** 太陽の方位・高度（度） */
+  function sunAltAz(ms, lat, lon) {
+    const fr = makeFrame(ms, lat, lon);
+    const v = applyMat(fr.H, sunEq(fr.jd).vec, [0, 0, 0]);
+    return horToAzAlt(v);
+  }
+
+  /** 見かけの太陽黄経が target 度を通る時刻（その年）。春分0・夏至90・秋分180・冬至270 */
+  function solarTerm(year, target) {
+    const base = Date.UTC(year, 0, 1);
+    const f = (t) => ((sunPos(t).lonApp - target + 540) % 360) - 180;
+    let t0 = base - 5 * 86400000, f0 = f(t0);
+    for (let t = t0 + 86400000; t < base + 380 * 86400000; t += 86400000) {
+      const f1 = f(t);
+      if (f0 < 0 && f1 >= 0 && Math.abs(f1 - f0) < 90) {
+        let a = t - 86400000, b = t;
+        for (let k = 0; k < 30; k++) { const mid = (a + b) / 2; if (f(mid) < 0) a = mid; else b = mid; }
+        const r = (a + b) / 2;
+        if (new Date(r).getUTCFullYear() === year) return r;
+      }
+      f0 = f1;
+    }
+    return null;
+  }
+
+  /** その日(dayStartMsから24時間)の最初の月の出・月の入り(ms)。しきい値は月の中心が視半径・大気差・視差を含めて地平付近に来る高度 */
+  function moonRiseSet(dayStartMs, lat, lon) {
+    const c = crossings((t) => moonAltitude(t, lat, lon), dayStartMs, -0.3);
+    return { rise: c.rises[0] ?? null, set: c.sets[0] ?? null };
+  }
+
   window.Astro = {
+    moonRiseSet, orrery, orbitPoints, ALL_PLANETS, moonPhaseAngle, moonInfo, findPhases, sunPos, equationOfTime, sunAltAz, solarTerm, jdFromMs, moonAltitude,
     D2R, R2D, norm360, raDecToVec, makeFrame, applyMat, horToAzAlt,
     solarSystem, sunAltitude, dayEvents, PLANETS,
   };

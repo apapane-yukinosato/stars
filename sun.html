@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#050914">
+  <title>太陽の動きとアナレンマ｜日の出・日の入り・南中高度</title>
+  <meta name="description" content="太陽の通り道、日の出入りと昼の長さ、南中高度、均時差、8の字を描くアナレンマ、夏至・冬至の時刻を日本の都市ごとに確認できます。">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23050914'/%3E%3Ccircle cx='16' cy='16' r='6' fill='%23f6d27a'/%3E%3Cpath d='M16 3v4M16 25v4M3 16h4M25 16h4M7 7l3 3M22 22l3 3M7 25l3-3M22 10l3-3' stroke='%23f6d27a' stroke-width='2'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/pole.css">
+  <link rel="stylesheet" href="css/pages.css">
+</head>
+<body>
+  <header class="head">
+    <p class="crumb"><a href="index.html">← トップ</a></p>
+    <h1>太陽の動きとアナレンマ</h1>
+    <p class="lead">太陽は毎日、同じ時刻に同じ場所へは戻ってきません。季節で高さが変わり、さらに地球の公転や地軸の傾きのせいで、1年かけて空に「8の字」（アナレンマ）を描きます。日付と都市を選んで、太陽の動きを見てみましょう。</p>
+  </header>
+
+  <section class="ctrl" aria-label="都市と日付">
+    <div class="yearbox">
+      <output id="title" class="year" for="date">—</output>
+      <p id="sub" class="verdict"></p>
+    </div>
+    <div class="row">
+      <label class="sel"><span class="vh">観測地</span>
+        <select id="place">
+          <option value="45.4155,141.673,稚内">稚内</option>
+          <option value="43.0621,141.3544,札幌">札幌</option>
+          <option value="38.2682,140.8694,仙台">仙台</option>
+          <option value="35.6895,139.6917,東京" selected>東京</option>
+          <option value="34.6937,135.5023,大阪">大阪</option>
+          <option value="33.5902,130.4017,福岡">福岡</option>
+          <option value="26.2124,127.6809,那覇">那覇</option>
+          <option value="24.3448,124.1572,石垣島">石垣島</option>
+        </select>
+      </label>
+      <label class="sel">日付 <input id="date" type="date" min="1900-01-01" max="2100-12-31"></label>
+      <button type="button" id="today" class="accent">今日</button>
+      <button type="button" data-d="solstice-s">夏至</button>
+      <button type="button" data-d="solstice-w">冬至</button>
+      <button type="button" data-d="equinox-s">春分</button>
+      <button type="button" data-d="equinox-a">秋分</button>
+    </div>
+  </section>
+
+  <main class="page-grid" style="grid-template-columns: minmax(0,1fr) minmax(0,1fr)">
+    <section class="card" style="margin-top:0">
+      <h2>この日の太陽</h2>
+      <dl id="kv" class="kv2"></dl>
+    </section>
+    <section class="card" style="margin-top:0">
+      <h2>日の長さのひみつ</h2>
+      <ul id="insight" class="where" style="grid-template-columns:1fr"></ul>
+    </section>
+  </main>
+
+  <main class="page-grid" style="margin-top:16px">
+    <figure style="margin:0">
+      <div class="row" style="margin:0 0 8px">
+        <label class="sel"><span class="vh">横軸</span>
+          <select id="axis"><option value="time">横軸: 時刻</option><option value="az">横軸: 方位</option></select>
+        </label>
+      </div>
+      <div class="plot wide"><canvas id="cvPath" aria-label="太陽の通り道のグラフ"></canvas></div>
+      <p class="legend" id="legPath"></p>
+      <figcaption class="note">太陽の高さの1日の変化です。夏は高く長く、冬は低く短く、春分・秋分はその中間で真東から昇り真西に沈みます。</figcaption>
+    </figure>
+    <figure style="margin:0">
+      <div class="row" style="margin:0 0 8px">
+        <label class="sel"><span class="vh">時刻</span>
+          <select id="atime"></select>
+        </label>
+      </div>
+      <div class="plot wide"><canvas id="cvAna" aria-label="アナレンマ"></canvas></div>
+      <figcaption class="note"><b>アナレンマ</b>: 毎日、同じ時刻（日本時間）に太陽の位置を記録して重ねると、1年で8の字になります。上が夏、下が冬。左右のずれは「均時差」によるものです。金色の点が選んだ日です。</figcaption>
+    </figure>
+  </main>
+
+  <section class="card">
+    <h2>1年の変化</h2>
+    <div class="trio">
+      <figure style="margin:0"><div class="plot" style="aspect-ratio:4/3"><canvas id="cvAlt"></canvas></div><figcaption class="note">南中高度（度）</figcaption></figure>
+      <figure style="margin:0"><div class="plot" style="aspect-ratio:4/3"><canvas id="cvLen"></canvas></div><figcaption class="note">昼の長さ（時間）</figcaption></figure>
+      <figure style="margin:0"><div class="plot" style="aspect-ratio:4/3"><canvas id="cvEot"></canvas></div><figcaption class="note">均時差（分）。日時計の太陽時が平均より進んでいる時間</figcaption></figure>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>二至二分（春分・夏至・秋分・冬至）</h2>
+    <div class="tblwrap">
+      <table class="tbl"><thead><tr><th>節目</th><th>日時（日本時間）</th><th class="num">昼の長さ</th><th class="num">南中高度</th></tr></thead><tbody id="terms"></tbody></table>
+    </div>
+    <p class="note">日時は計算値で、国立天文台の発表とは数分〜10分程度ずれることがあります。</p>
+  </section>
+
+  <footer class="foot">
+    <p>太陽の位置は簡易的な計算式（P. Schlyter）に光行差・章動の補正を加えた概算です。日の出・日の入りは太陽の上端が地平線に接する時刻（大気差と視半径を考慮）で、標高0mの値です。</p>
+  </footer>
+
+  <script src="js/astro.js"></script>
+  <script src="js/sun.js"></script>
+</body>
+</html>

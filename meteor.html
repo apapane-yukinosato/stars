@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#050914">
+  <title>流星群カレンダー｜極大日・月明かり・放射点</title>
+  <meta name="description" content="一年の主な流星群の極大日、放射点の高さ、月明かりの影響を、年と場所を選んで確認できます。">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23050914'/%3E%3Cpath d='M26 5L8 23' stroke='%23f6d27a' stroke-width='2.5' stroke-linecap='round'/%3E%3Ccircle cx='8' cy='23' r='3' fill='%23fff'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/pole.css">
+  <link rel="stylesheet" href="css/pages.css">
+</head>
+<body>
+  <header class="head">
+    <p class="crumb"><a href="index.html">← トップ</a></p>
+    <h1>流星群カレンダー</h1>
+    <p class="lead">流星群は毎年ほぼ同じ時期に現れますが、見やすさは「月明かり」で大きく変わります。選んだ年の極大の夜について、月の形、月の出入り、放射点の高さから見やすさの目安を出します。</p>
+  </header>
+
+  <section class="ctrl" aria-label="年と場所">
+    <div class="yearbox">
+      <output id="title" class="year" for="y">—</output>
+      <p id="next" class="verdict"></p>
+    </div>
+    <div class="row">
+      <button type="button" id="prev">← 前の年</button>
+      <label class="sel"><span class="vh">年</span><select id="y"></select></label>
+      <button type="button" id="nextY">次の年 →</button>
+      <button type="button" id="thisY" class="accent">今年</button>
+      <label class="sel"><span class="vh">観測地</span>
+        <select id="place">
+          <option value="43.0621,141.3544">札幌</option>
+          <option value="38.2682,140.8694">仙台</option>
+          <option value="35.6895,139.6917" selected>東京</option>
+          <option value="35.1815,136.9066">名古屋</option>
+          <option value="34.6937,135.5023">大阪</option>
+          <option value="33.5902,130.4017">福岡</option>
+          <option value="26.2124,127.6809">那覇</option>
+        </select>
+      </label>
+    </div>
+  </section>
+
+  <section>
+    <div class="plot" style="aspect-ratio: 16 / 3.6"><canvas id="cvYear" aria-label="一年の流星群の見やすさ"></canvas></div>
+    <p class="legend"><span><i style="background:#7ee2a1"></i>見やすい</span><span><i style="background:#f6d27a"></i>まずまず</span><span><i style="background:#ff9c8a"></i>月明かりが強い</span><span>円の大きさ＝流星の数（ZHR）</span></p>
+  </section>
+
+  <section id="cards" class="mcards"></section>
+
+  <footer class="foot">
+    <p>極大日・流星数（ZHR: 理想的な条件で1時間に見える流星の数）・放射点は国際流星機構（IMO）などの標準的な値に基づく目安で、実際の極大日は年によって前後します。「見やすさ」は、極大の夜（21時〜翌4時、日本時間）の月明かりと放射点の高さから簡易的に推定したものです。実際に見える流星数はZHRより少なくなります。</p>
+  </footer>
+
+  <script src="js/astro.js"></script>
+  <script src="js/meteor.js"></script>
+</body>
+</html>

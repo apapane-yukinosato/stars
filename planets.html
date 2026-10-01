@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#050914">
+  <title>惑星の位置図｜太陽系を上から見る</title>
+  <meta name="description" content="好きな日の太陽系を真上から見た位置図。地球と各惑星の距離、太陽からの離角、次の衝や最大離角の日が分かります。">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23050914'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%23f6d27a'/%3E%3Ccircle cx='16' cy='16' r='7' fill='none' stroke='%2394a0c4' stroke-width='1'/%3E%3Ccircle cx='16' cy='16' r='12' fill='none' stroke='%2394a0c4' stroke-width='1'/%3E%3Ccircle cx='23' cy='16' r='2' fill='%237fb4ff'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/pole.css">
+  <link rel="stylesheet" href="css/pages.css">
+</head>
+<body>
+  <header class="head">
+    <p class="crumb"><a href="index.html">← トップ</a></p>
+    <h1>惑星の位置図</h1>
+    <p class="lead">太陽系を北の上空から見下ろした図です。日付を動かすと、地球が太陽を回り、惑星が近づいたり遠ざかったりするようすが分かります。惑星が夜空のどこに見えるかは、地球から見た「太陽との角度（離角）」で決まります。</p>
+  </header>
+
+  <section class="ctrl" aria-label="日付と表示の操作">
+    <div class="yearbox">
+      <output id="dateLabel" class="year" for="date">—</output>
+      <p id="sub" class="verdict"></p>
+    </div>
+    <div class="row">
+      <label class="sel">日付 <input id="date" type="date" min="1900-01-01" max="2100-12-31"></label>
+      <button type="button" id="today" class="accent">今日</button>
+      <button type="button" data-days="-365">−1年</button>
+      <button type="button" data-days="-30">−1か月</button>
+      <button type="button" data-days="30">+1か月</button>
+      <button type="button" data-days="365">+1年</button>
+    </div>
+    <div class="row">
+      <button id="play" type="button" aria-pressed="false">▶ 再生</button>
+      <label class="sel"><span class="vh">再生速度</span>
+        <select id="speed">
+          <option value="3">3日/秒</option>
+          <option value="15" selected>15日/秒</option>
+          <option value="60">60日/秒</option>
+          <option value="200">200日/秒</option>
+        </select>
+      </label>
+      <label class="sel"><span class="vh">表示範囲</span>
+        <select id="range">
+          <option value="inner">内側（火星まで）</option>
+          <option value="mid">土星まで</option>
+          <option value="all">海王星まで</option>
+        </select>
+      </label>
+      <label class="chk"><input id="rays" type="checkbox" checked> 地球からの視線</label>
+    </div>
+  </section>
+
+  <main class="page-grid">
+    <figure style="margin:0">
+      <div class="plot sq"><canvas id="cv" aria-label="太陽系の惑星位置図"></canvas></div>
+      <p class="legend" id="legend"></p>
+      <figcaption class="note">北の上空から見た図です。惑星は反時計回りに動きます。右向きが春分点の方向（♈）。外側の表示範囲は距離を平方根で縮めています。</figcaption>
+    </figure>
+    <div>
+      <section class="card" style="margin-top:0">
+        <h2>この日の惑星</h2>
+        <div class="tblwrap">
+          <table class="tbl" id="tbl">
+            <thead><tr><th>惑星</th><th class="num">太陽から</th><th class="num">地球から</th><th class="num">光の時間</th><th class="num">離角</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <ul id="where" class="where"></ul>
+      </section>
+    </div>
+  </main>
+
+  <section class="card">
+    <h2>次の見どころ（この日以降）</h2>
+    <p class="note">外惑星は「衝」（地球から見て太陽の正反対になり、一晩中見える・いちばん明るく大きく見える頃）、水星と金星は「最大離角」（太陽から最も離れて見やすい頃）を探しています。</p>
+    <div class="tblwrap">
+      <table class="tbl" id="events"><thead><tr><th>惑星</th><th>見どころ</th><th>日付</th><th class="num">離角</th><th class="num">地球から</th></tr></thead><tbody></tbody></table>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <p>惑星の位置は簡易的な軌道計算式（P. Schlyter）による概算です。1900〜2100年の範囲で、惑星の方向は約1〜2分角、日付の目安は±1日程度の精度です。見えやすさ・離角の判断は目安です。</p>
+  </footer>
+
+  <script src="js/astro.js"></script>
+  <script src="js/planets.js"></script>
+</body>
+</html>
