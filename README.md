@@ -1,4 +1,11 @@
-# 星空シミュレーター
+# 星空ラボ
+
+トップページ（`index.html`）から、次の2つのシミュレーターへ移動できます。
+
+- **星空シミュレーター**（`sky.html`）
+- **北極星の移り変わり**（`pole-star.html`）
+
+## 星空シミュレーター（`sky.html`）
 
 今夜の星座や、日本各地で見える星空をブラウザ上で再現する静的Webページです（GitHub Pages でそのまま公開できます）。ビルド不要・外部ライブラリなし・通信はページの読み込みのみです。
 
@@ -30,7 +37,8 @@
 
 | パス | 内容 |
 | --- | --- |
-| `index.html`, `css/style.css` | 画面とスタイル |
+| `index.html`, `css/top.css`, `assets/` | トップページ（各シミュレーターへのリンク）とサムネイル |
+| `sky.html`, `css/style.css` | 星空シミュレーターの画面とスタイル |
 | `pole-star.html`, `css/pole.css`, `js/pole.js`, `js/precession.js` | 北極星の移り変わりページ |
 | `js/astro.js` | 恒星時・歳差・太陽/月/惑星の位置・日の出入りの計算 |
 | `js/app.js` | 描画（Canvas）と操作 |

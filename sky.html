@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#050914">
+  <title>星空シミュレーター｜日本の夜空・星座</title>
+  <meta name="description" content="今夜の星座や、日本各地で見える星空・惑星・月をブラウザで再現するシミュレーター。日時と場所を変えて星空を観察できます。">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23050914'/%3E%3Cpath d='M16 5l2.9 7.1 7.6.6-5.8 5 1.8 7.4L16 21l-6.5 4.1 1.8-7.4-5.8-5 7.6-.6z' fill='%23f6d27a'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <canvas id="sky" aria-label="星空の図"></canvas>
+
+  <header class="topbar">
+    <div class="brand">
+      <a class="crumb" href="index.html">← トップ</a>
+      <h1>星空シミュレーター</h1>
+      <p id="whenLabel" class="when" aria-live="off"></p>
+    </div>
+    <div class="seg" role="group" aria-label="表示モード">
+      <button id="modeDome" class="on" type="button">全天</button>
+      <button id="modeView" type="button">広角</button>
+    </div>
+    <button id="menuBtn" class="menu-btn" type="button" aria-controls="panel" aria-expanded="false">設定</button>
+  </header>
+
+  <div id="hint" class="hint"></div>
+  <div id="toast" class="toast" role="status"></div>
+
+  <div id="infoCard" class="info-card" hidden>
+    <button id="infoClose" type="button" aria-label="閉じる">×</button>
+    <div id="infoBody"></div>
+  </div>
+
+  <aside id="panel" class="panel" aria-label="設定と情報">
+    <section>
+      <h2>日時（日本時間）</h2>
+      <input id="dt" type="datetime-local" step="60">
+      <div class="row">
+        <button id="btnNow" type="button" class="accent">現在</button>
+        <button id="btnTonight" type="button">今夜 21:00</button>
+      </div>
+      <div class="row">
+        <button data-step="-86400000" type="button">−1日</button>
+        <button data-step="-3600000" type="button">−1時間</button>
+        <button data-step="3600000" type="button">+1時間</button>
+        <button data-step="86400000" type="button">+1日</button>
+      </div>
+      <div class="row">
+        <button id="btnPlay" type="button" aria-pressed="false">▶ 再生</button>
+        <label class="sel"><span class="vh">再生速度</span>
+          <select id="speed">
+            <option value="1">等倍</option>
+            <option value="60">1分/秒</option>
+            <option value="600" selected>10分/秒</option>
+            <option value="3600">1時間/秒</option>
+            <option value="86400">1日/秒</option>
+          </select>
+        </label>
+      </div>
+    </section>
+
+    <section>
+      <h2>場所</h2>
+      <label class="sel"><span class="vh">観測地</span><select id="place"></select></label>
+      <div class="row">
+        <button id="btnGeo" type="button">現在地を使う</button>
+        <span id="latlon" class="muted"></span>
+      </div>
+    </section>
+
+    <section>
+      <h2>空の条件</h2>
+      <label class="sel"><span class="vh">空の暗さ</span>
+        <select id="bortle">
+          <option value="city">市街地（明るい星だけ）</option>
+          <option value="sub" selected>郊外</option>
+          <option value="dark">山・離島など暗い場所</option>
+        </select>
+      </label>
+      <label class="chk"><input type="checkbox" id="o_realSky"> 昼・薄明の空の明るさも再現する</label>
+    </section>
+
+    <section>
+      <h2>表示</h2>
+      <div class="chks">
+        <label class="chk"><input type="checkbox" id="o_lines" checked> 星座線</label>
+        <label class="chk"><input type="checkbox" id="o_conNames" checked> 星座名</label>
+        <label class="chk"><input type="checkbox" id="o_starNames" checked> 星の名前</label>
+        <label class="chk"><input type="checkbox" id="o_milky" checked> 天の川</label>
+        <label class="chk"><input type="checkbox" id="o_bodies" checked> 太陽・月・惑星</label>
+        <label class="chk"><input type="checkbox" id="o_ecl" checked> 黄道</label>
+        <label class="chk"><input type="checkbox" id="o_altaz"> 方位・高度の目盛</label>
+        <label class="chk"><input type="checkbox" id="o_equ"> 赤道座標の目盛</label>
+      </div>
+    </section>
+
+    <section>
+      <h2>この日の空</h2>
+      <dl id="sunInfo" class="kv"></dl>
+    </section>
+
+    <section>
+      <h2>月・惑星</h2>
+      <ul id="bodyList" class="bodies"></ul>
+    </section>
+
+    <section>
+      <h2>いま見える星座</h2>
+      <p class="muted small">タップすると、その星座を中央に表示します。</p>
+      <div id="conList" class="chips"></div>
+    </section>
+
+    <section>
+      <h2>ほかのページ</h2>
+      <p class="small"><a href="index.html">トップページ</a> ／ <a href="pole-star.html">北極星の移り変わり（古代ギリシャ〜未来）→</a></p>
+    </section>
+
+    <footer>
+      <p>星表・星座線・天の川の輪郭: <a href="https://github.com/ofrohn/d3-celestial" target="_blank" rel="noopener">d3-celestial</a>（BSD-3-Clause）。
+      惑星・月の位置は簡易計算式による概算です（肉眼観察用途では実用上十分な精度）。</p>
+    </footer>
+  </aside>
+
+  <noscript><p class="noscript">このページの表示には JavaScript が必要です。</p></noscript>
+
+  <script src="data/sky-data.js"></script>
+  <script src="js/astro.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

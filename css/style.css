@@ -54,6 +54,8 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
 }
 .topbar > * { pointer-events: auto; }
 .brand { flex: 1; min-width: 0; }
+.crumb { color: var(--accent); font-size: 12px; text-decoration: none; }
+.crumb:hover { text-decoration: underline; }
 .brand h1 { margin: 0; font-size: 17px; font-weight: 700; letter-spacing: 0.04em; }
 .when { margin: 0; color: var(--muted); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
