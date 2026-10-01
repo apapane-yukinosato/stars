@@ -455,8 +455,35 @@
     return { rise: c.rises[0] ?? null, set: c.sets[0] ?? null };
   }
 
+  /** 観測日の分点の赤道座標ベクトル → J2000.0 の赤道座標ベクトル（歳差の逆変換） */
+  function eqDateToJ2000(v, jd) {
+    const P = precession(jd);
+    return [P[0] * v[0] + P[3] * v[1] + P[6] * v[2], P[1] * v[0] + P[4] * v[1] + P[7] * v[2], P[2] * v[0] + P[5] * v[1] + P[8] * v[2]];
+  }
+
+  /** 全惑星の見かけの位置: 星座に対する位置(J2000 赤経・赤緯)、黄経、離角、観測地での方位・高度 */
+  function skyPlanets(ms, lat, lon) {
+    const jd = jdFromMs(ms);
+    const o = orrery(jd);
+    const fr = makeFrame(ms, lat, lon);
+    const out = ALL_PLANETS.map((p, k) => {
+      const pe = planetEq(p, jd);
+      const j = eqDateToJ2000(pe.vec, jd);
+      const hv = applyMat(fr.H, pe.vec, [0, 0, 0]);
+      const hz = horToAzAlt(hv);
+      const q = o.planets[k];
+      return {
+        id: p.id, ja: p.ja, color: p.color,
+        ra: norm360(Math.atan2(j[1], j[0]) * R2D), dec: Math.asin(Math.max(-1, Math.min(1, j[2]))) * R2D,
+        lonG: q.lonG, elong: q.elong, east: q.east, rEarth: q.rEarth, rSun: q.rSun, h: q.h,
+        az: hz.az, alt: hz.alt,
+      };
+    });
+    return { planets: out, sunLon: o.sunLon, earth: o.earth };
+  }
+
   window.Astro = {
-    moonRiseSet, orrery, orbitPoints, ALL_PLANETS, moonPhaseAngle, moonInfo, findPhases, sunPos, equationOfTime, sunAltAz, solarTerm, jdFromMs, moonAltitude,
+    skyPlanets, eqDateToJ2000, moonRiseSet, orrery, orbitPoints, ALL_PLANETS, moonPhaseAngle, moonInfo, findPhases, sunPos, equationOfTime, sunAltAz, solarTerm, jdFromMs, moonAltitude,
     D2R, R2D, norm360, raDecToVec, makeFrame, applyMat, horToAzAlt,
     solarSystem, sunAltitude, dayEvents, PLANETS,
   };

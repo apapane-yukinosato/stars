@@ -5,6 +5,7 @@
 - **星空シミュレーター**（`sky.html`）
 - **北極星の移り変わり**（`pole-star.html`）
 - **惑星の位置図**（`planets.html`）: 好きな日の太陽系を上から見る。次の衝・最大離角
+- **惑星の動きと逆行**（`retro.html`）: 毎日同じ時刻に観測した惑星の見かけの動き。火星の逆行ループなど全惑星
 - **月の満ち欠けカレンダー**（`moon.html`）: 月齢・月の出入り・新月/満月の日時
 - **太陽の動きとアナレンマ**（`sun.html`）: 日の出入り・昼の長さ・均時差・夏至冬至
 - **流星群カレンダー**（`meteor.html`）: 極大の夜の月明かりと放射点の高さ
@@ -36,7 +37,7 @@
 | `index.html`, `css/top.css`, `assets/` | トップページ（各シミュレーターへのリンク）とサムネイル |
 | `sky.html`, `css/style.css` | 星空シミュレーターの画面とスタイル |
 | `pole-star.html`, `css/pole.css`, `js/pole.js`, `js/precession.js` | 北極星の移り変わりページ |
-| `planets.html`, `moon.html`, `sun.html`, `meteor.html`, `scale.html`, `css/pages.css`, `js/{planets,moon,sun,meteor,scale}.js` | 追加の各ページ |
+| `planets.html`, `retro.html`, `moon.html`, `sun.html`, `meteor.html`, `scale.html`, `css/pages.css`, `js/{planets,retro,moon,sun,meteor,scale}.js` | 追加の各ページ |
 | `js/astro.js` | 恒星時・歳差・太陽/月/惑星の位置・月相・日の出入りの計算 |
 | `js/app.js` | 描画（Canvas）と操作 |
 | `data/sky-data.js` | 星表・星座線・天の川（`tools/build_data.py` で生成） |

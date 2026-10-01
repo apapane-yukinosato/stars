@@ -69,3 +69,14 @@ input[type="date"], input[type="number"] {
 .mc dt { color: var(--muted); } .mc dd { margin: 0; }
 .mc .tip { margin: 8px 0 0; font-size: 13px; color: var(--muted); }
 #slider { width: 100%; margin: 6px 0 0; accent-color: var(--accent); height: 28px; }
+/* ---- 逆行ページ ---- */
+.charts { display: grid; gap: 14px; }
+.charts.multi { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.charts .cc { position: relative; }
+.charts .cc h3 { margin: 0 0 4px; font-size: 14px; }
+.pchip { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 4px 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--btn); cursor: pointer; user-select: none; }
+.pchip input { position: absolute; opacity: 0; pointer-events: none; }
+.pchip i { width: 11px; height: 11px; border-radius: 50%; display: inline-block; }
+.pchip:has(input:checked) { background: rgba(246,210,122,0.16); border-color: var(--accent); }
+.pchip:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (max-width: 860px) { .charts.multi { grid-template-columns: minmax(0, 1fr); } main.page-grid { grid-template-columns: minmax(0, 1fr) !important; } }
