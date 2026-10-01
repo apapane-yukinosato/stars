@@ -12,6 +12,7 @@ BASE = "https://raw.githubusercontent.com/ofrohn/d3-celestial/master/data/"
 OUT = os.path.join(os.path.dirname(__file__), "..", "data", "sky-data.js")
 MAG_LIMIT = 6.0        # これより暗い星は載せない
 NAME_MAG_LIMIT = 2.8   # 星名を載せる明るさ
+INFO_MAG_LIMIT = 4.6   # 名前・符号の情報を載せる明るさ（北極星ページ用）
 MW_STEP = 3            # 天の川ブロブの格子間隔（度）
 
 
@@ -39,7 +40,7 @@ def main():
     lines = {f["id"]: f for f in fetch("constellations.lines.json")["features"]}
     mw = fetch("mw.json")["features"]
 
-    star_out, name_out = [], []
+    star_out, name_out, info_out = [], [], []
     stars.sort(key=lambda f: f["properties"]["mag"])
     for f in stars:
         p = f["properties"]
@@ -55,6 +56,9 @@ def main():
         n = names.get(str(f["id"]))
         if n and p["mag"] <= NAME_MAG_LIMIT and n.get("ja"):
             name_out.append([len(star_out) - 1, n["ja"], n["name"]])
+        if n and p["mag"] <= INFO_MAG_LIMIT and (n.get("name") or n.get("bayer")):
+            # [星のindex, 日本語名, 英語名, バイエル符号, 星座略号]
+            info_out.append([len(star_out) - 1, n.get("ja") or "", n.get("name") or "", n.get("bayer") or "", n.get("c") or ""])
 
     cons_out = []
     for c in cons:
@@ -89,13 +93,13 @@ def main():
             if level:
                 blobs.append([ra, round(dec, 1), level])
 
-    data = {"stars": star_out, "names": name_out, "constellations": cons_out, "milkyway": blobs}
+    data = {"stars": star_out, "names": name_out, "info": info_out, "constellations": cons_out, "milkyway": blobs}
     with open(OUT, "w", encoding="utf-8") as fp:
         fp.write("// 自動生成: tools/build_data.py（d3-celestial, BSD-3-Clause, (c) 2015 Olaf Frohn）\n")
         fp.write("window.SKY_DATA=")
         json.dump(data, fp, ensure_ascii=False, separators=(",", ":"))
         fp.write(";\n")
-    print(len(star_out), "stars,", len(name_out), "names,", len(cons_out), "constellations,", len(blobs), "mw blobs")
+    print(len(star_out), "stars,", len(name_out), "names,", len(info_out), "info,", len(cons_out), "constellations,", len(blobs), "mw blobs")
     print("size", os.path.getsize(OUT))
 
 

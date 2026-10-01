@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#050914">
+  <title>北極星の移り変わり｜古代ギリシャから未来まで</title>
+  <meta name="description" content="歳差運動によって天の北極が動くため、北極星は時代とともに入れ替わります。古代ギリシャ時代から未来まで、天の北極の位置と北極星を再現するシミュレーター。">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23050914'/%3E%3Ccircle cx='16' cy='16' r='9' fill='none' stroke='%23f6d27a' stroke-width='1.5' stroke-dasharray='3 2'/%3E%3Cpath d='M16 8l1.7 4.2 4.5.4-3.4 3 1 4.4L16 17.7l-3.8 2.3 1-4.4-3.4-3 4.5-.4z' fill='%23f6d27a'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/pole.css">
+</head>
+<body>
+  <header class="head">
+    <div>
+      <p class="crumb"><a href="index.html">← 星空シミュレーター</a></p>
+      <h1>北極星の移り変わり</h1>
+      <p class="lead">地球の自転軸は約25,800年かけて首を振るように回ります（歳差運動）。そのため天の北極の位置が動き、「北極星」は時代とともに入れ替わります。年代を動かして、古代ギリシャから未来までの北の空を見てみましょう。</p>
+    </div>
+  </header>
+
+  <section class="ctrl" aria-label="年代の操作">
+    <div class="yearbox">
+      <output id="yearLabel" class="year" for="year">—</output>
+      <p id="verdict" class="verdict"></p>
+    </div>
+    <input id="year" type="range" min="-4000" max="22000" step="10" value="2026" aria-label="年代">
+    <div class="scale" aria-hidden="true"><span>紀元前4000</span><span>0</span><span>5000</span><span>10000</span><span>15000</span><span>20000</span></div>
+    <div class="row">
+      <button type="button" data-step="-1000">−1000年</button>
+      <button type="button" data-step="-100">−100年</button>
+      <button type="button" data-step="100">+100年</button>
+      <button type="button" data-step="1000">+1000年</button>
+      <button id="btnPlay" type="button" class="accent" aria-pressed="false">▶ 再生</button>
+      <label class="sel"><span class="vh">再生速度</span>
+        <select id="speed">
+          <option value="200">200年/秒</option>
+          <option value="800" selected>800年/秒</option>
+          <option value="2500">2500年/秒</option>
+        </select>
+      </label>
+    </div>
+  </section>
+
+  <main class="grid">
+    <figure>
+      <div class="cwrap"><canvas id="cvA" aria-label="星空を固定して見た、天の北極の移動経路"></canvas></div>
+      <figcaption><b>① 天の北極はどこを動く？</b> 星座を固定して、天の北極（金色の印）が通る道すじを描いています。道すじは黄道の北極（円の中心）を回る大きな円で、1周に約25,800年かかります。太い部分が古代ギリシャ時代（紀元前8世紀〜後2世紀）です。</figcaption>
+    </figure>
+    <figure>
+      <div class="cwrap"><canvas id="cvB" aria-label="選んだ年代の北の空"></canvas></div>
+      <figcaption><b>② その年の北の空</b> 天の北極を中心にした、選んだ年の北の空です（外側へ行くほど赤緯が低い）。中心に近い明るい星がその時代の北極星です。
+        <label class="sel inline">観測地:
+          <select id="lat">
+            <option value="37.98">アテネ（北緯38.0°）</option>
+            <option value="35.69">東京（北緯35.7°）</option>
+            <option value="43.06">札幌（北緯43.1°）</option>
+            <option value="26.21">那覇（北緯26.2°）</option>
+          </select>
+        </label>
+        破線の内側は一年中沈まない星です。
+      </figcaption>
+    </figure>
+  </main>
+
+  <section class="card">
+    <h2>最も近い明るい星</h2>
+    <ol id="nearList" class="near"></ol>
+    <p id="poleCoord" class="muted small"></p>
+  </section>
+
+  <section class="card">
+    <h2>北極星の移り変わり</h2>
+    <p class="muted small">天の北極から5°以内に入る明るい星（3.7等より明るい星）を色分けしています。色のない時期は、極の近くに目立つ星がありません。クリックでその年へ移動します。</p>
+    <canvas id="cvT" class="timeline" aria-label="北極星の移り変わりの年表"></canvas>
+  </section>
+
+  <section class="card">
+    <h2>年表</h2>
+    <ul id="events" class="events"></ul>
+  </section>
+
+  <section class="card">
+    <h2>極に近づく星（最接近）</h2>
+    <div class="tblwrap">
+      <table class="tbl">
+        <thead><tr><th>星</th><th>最接近の年</th><th>極からの角距離</th><th>等級</th></tr></thead>
+        <tbody id="approach"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <p>天の北極の位置は、長期歳差モデル（Vondrák, Capitaine &amp; Wallace 2011, A&amp;A 534, A22）で計算しています。星の位置はJ2000.0の位置を歳差で動かしたもので、<b>固有運動（星自身の動き）は含めていません</b>。数千年スケールでは誤差は小さいものの、ベガのように動きの大きい星は1万年以上先で1〜2°ずれることがあります。年は天文学の年号で、紀元前1年が0年にあたります。</p>
+    <p>星表・星座線: <a href="https://github.com/ofrohn/d3-celestial" target="_blank" rel="noopener">d3-celestial</a>（BSD-3-Clause）</p>
+  </footer>
+
+  <script src="data/sky-data.js"></script>
+  <script src="js/precession.js"></script>
+  <script src="js/pole.js"></script>
+</body>
+</html>
