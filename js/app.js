@@ -427,11 +427,14 @@
         ctx.globalAlpha = 0.35 * (0.3 + b.illum); ctx.drawImage(GLOW, x - g, y - g, g * 2, g * 2); ctx.globalAlpha = 1;
         drawMoon(x, y, rad, b);
       } else {
-        rad = clamp(2.6 + -b.mag * 0.55 + 0.5, 2.6, 5.5) * zoomK;
+        rad = clamp(3.6 + -b.mag * 0.5, 3.6, 6.5) * zoomK;
         const g = rad * 5;
         ctx.globalAlpha = 0.4 * (real ? clamp(-sunAlt / 12, 0.1, 1) : 1); ctx.drawImage(GLOW, x - g, y - g, g * 2, g * 2);
         ctx.globalAlpha = real ? clamp(-sunAlt / 6, 0.3, 1) : 1;
-        ctx.fillStyle = b.color; ctx.beginPath(); ctx.arc(x, y, rad, 0, 6.2832); ctx.fill(); ctx.globalAlpha = 1;
+        ctx.fillStyle = b.color; ctx.beginPath(); ctx.arc(x, y, rad, 0, 6.2832); ctx.fill();
+        ctx.strokeStyle = b.color; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(x, y, rad + 5, 0, 6.2832); ctx.stroke(); ctx.lineWidth = 1;
+        ctx.globalAlpha = 1; rad += 5;
+        ctx.font = `bold ${Math.round(13 * Math.min(zoomK, 1.3))}px ${FONT}`;
       }
       ctx.fillStyle = b.id === 'sun' ? '#ffe9a8' : b.id === 'moon' ? '#f1f1e6' : '#ffd9a6';
       ctx.fillText(b.ja, x + rad + 5, y - rad * 0.4);
@@ -785,7 +788,7 @@
       else if (o.alt < 8) st = '低い';
       else { st = '観察できる'; ok = true; }
       const col = b.id === 'moon' ? '#f4f1e0' : b.color;
-      return `<li><span class="dot" style="background:${col}"></span><span>${b.ja}</span><span>${o.alt > 0 ? `${dirName(o.az)} ${o.alt.toFixed(0)}°` : ''}</span><span class="st${ok ? ' ok' : ''}">${st}</span></li>`;
+      return `<li><span class="dot" style="background:${col}"></span><span>${b.ja}</span><span>${dirName(o.az)} ${o.alt.toFixed(0)}°${b.mag !== undefined ? `<small class="muted"> ${b.mag > 0 ? '+' : ''}${b.mag.toFixed(1)}等</small>` : ''}</span><span class="st${ok ? ' ok' : ''}">${st}</span></li>`;
     });
     $('bodyList').innerHTML = rows.join('');
     renderConList(false);
