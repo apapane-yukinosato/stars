@@ -4,15 +4,15 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#050914">
-  <title>星空ラボ｜星空・星座・北極星のシミュレーター</title>
-  <meta name="description" content="日本で見える星空や星座、北極星の移り変わりをブラウザで体験できるシミュレーター集。">
+  <title>星空ラボ｜星空・惑星・月・太陽・流星群のシミュレーター</title>
+  <meta name="description" content="日本で見える星空や星座、北極星の移り変わり、惑星・月・太陽の動き、流星群、宇宙の大きさをブラウザで体験できるシミュレーター集。">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23050914'/%3E%3Cpath d='M16 5l2.9 7.1 7.6.6-5.8 5 1.8 7.4L16 21l-6.5 4.1 1.8-7.4-5.8-5 7.6-.6z' fill='%23f6d27a'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="css/top.css">
 </head>
 <body>
   <header class="hero">
     <h1>星空ラボ</h1>
-    <p>日本で見える星空や星座、そして「北極星」が時代とともに入れ替わるしくみを、ブラウザの中で体験できるシミュレーター集です。</p>
+    <p>日本で見える星空や星座、惑星・月・太陽の動き、流星群、そして宇宙の大きさまで。宇宙の観測が好きな人のための、ブラウザで遊べるシミュレーター集です。</p>
   </header>
 
   <main class="cards">
@@ -31,7 +31,7 @@
     </a>
 
     <a class="card" href="pole-star.html">
-      <img src="assets/thumb-pole.jpg" width="1000" height="640" alt="天の北極の移動経路と、紀元前320年の北の空" loading="lazy">
+      <img src="assets/thumb-pole.jpg" width="1000" height="640" alt="天の北極の移動経路と、紀元前320年の北の空" loading="eager">
       <div class="body">
         <h2>北極星の移り変わり</h2>
         <p>歳差運動で天の北極は動きます。古代ギリシャ時代から未来まで、その時代の北極星と北の空を見比べられます。</p>
@@ -43,6 +43,91 @@
         <span class="go">開く →</span>
       </div>
     </a>
+
+    <a class="card" href="planets.html">
+      <img src="assets/thumb-planets.jpg" width="1000" height="640" alt="太陽系の惑星の軌道と、各惑星の位置" loading="lazy">
+      <div class="body">
+        <h2>惑星の位置図</h2>
+        <p>太陽系を真上から見た位置図。好きな日の惑星の位置と地球からの距離、次の衝や最大離角が分かります。</p>
+        <ul>
+          <li>内側から海王星まで</li>
+          <li>惑星は夜空のどこに見える？</li>
+          <li>次の衝・最大離角の日付</li>
+        </ul>
+        <span class="go">開く →</span>
+      </div>
+    </a>
+
+    <a class="card" href="moon.html">
+      <img src="assets/thumb-moon.jpg" width="1000" height="640" alt="1か月分の月の満ち欠けカレンダー" loading="lazy">
+      <div class="body">
+        <h2>月の満ち欠けカレンダー</h2>
+        <p>1か月分の月の形・月齢・月の出入りと、新月・上弦・満月・下弦の日時をカレンダーで確認できます。</p>
+        <ul>
+          <li>月の形と月齢</li>
+          <li>月の出・月の入りの時刻</li>
+          <li>十五夜などの呼び名</li>
+        </ul>
+        <span class="go">開く →</span>
+      </div>
+    </a>
+
+    <a class="card" href="sun.html">
+      <img src="assets/thumb-sun.jpg" width="1000" height="640" alt="太陽の通り道のグラフとアナレンマ" loading="lazy">
+      <div class="body">
+        <h2>太陽の動きとアナレンマ</h2>
+        <p>太陽の通り道、昼の長さ、南中高度、均時差、1年で描く8の字（アナレンマ）、夏至・冬至の時刻が分かります。</p>
+        <ul>
+          <li>都市ごとの日の出・日の入り</li>
+          <li>日の入りが一番早い日は？</li>
+          <li>二至二分の日時</li>
+        </ul>
+        <span class="go">開く →</span>
+      </div>
+    </a>
+
+    <a class="card" href="retro.html">
+      <img src="assets/thumb-retro.jpg" width="1000" height="640" alt="星座の中を動く火星の逆行ループ" loading="lazy">
+      <div class="body">
+        <h2>惑星の動きと逆行</h2>
+        <p>地球から毎日同じ時刻に惑星を観測すると、星座の中をどう動くか。火星の逆行など、水星から海王星まで全惑星の見かけの動きを再現します。</p>
+        <ul>
+          <li>火星の逆行ループ（次回の逆行も自動表示）</li>
+          <li>上から見た図で「なぜ逆行するか」を解説</li>
+          <li>留・衝・内合の日付</li>
+        </ul>
+        <span class="go">開く →</span>
+      </div>
+    </a>
+
+    <a class="card" href="meteor.html">
+      <img src="assets/thumb-meteor.jpg" width="1000" height="640" alt="一年の流星群と見やすさの目安" loading="lazy">
+      <div class="body">
+        <h2>流星群カレンダー</h2>
+        <p>一年の主な流星群の極大日、放射点の高さ、月明かりの影響から、見やすさの目安を確認できます。</p>
+        <ul>
+          <li>しぶんぎ座・ペルセウス座・ふたご座など</li>
+          <li>年ごとの月明かりの影響</li>
+          <li>放射点がいちばん高くなる時刻</li>
+        </ul>
+        <span class="go">開く →</span>
+      </div>
+    </a>
+
+    <a class="card" href="scale.html">
+      <img src="assets/thumb-scale.jpg" width="1000" height="640" alt="光が進んだ時間と届く天体を示した図" loading="lazy">
+      <div class="body">
+        <h2>光で旅する宇宙</h2>
+        <p>光の速さで進むと、月・太陽・星・銀河まで何秒、何年かかる？夜空の星の光がいつ出発したかも分かります。</p>
+        <ul>
+          <li>1秒から宇宙の年齢まで</li>
+          <li>新幹線や探査機で行ったら？</li>
+          <li>星の光は何年前の姿？</li>
+        </ul>
+        <span class="go">開く →</span>
+      </div>
+    </a>
+
   </main>
 
   <footer class="foot">

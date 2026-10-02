@@ -1,9 +1,17 @@
 # 星空ラボ
 
-トップページ（`index.html`）から、次の2つのシミュレーターへ移動できます。
+**公開サイト（GitHub Pages）: <https://apapane-yukinosato.github.io/stars/>**
 
-- **星空シミュレーター**（`sky.html`）
-- **北極星の移り変わり**（`pole-star.html`）
+トップページ（`index.html`）から、次のシミュレーターへ移動できます。
+
+- **星空シミュレーター**（[`sky.html`](https://apapane-yukinosato.github.io/stars/sky.html)）
+- **北極星の移り変わり**（[`pole-star.html`](https://apapane-yukinosato.github.io/stars/pole-star.html)）
+- **惑星の位置図**（[`planets.html`](https://apapane-yukinosato.github.io/stars/planets.html)）: 好きな日の太陽系を上から見る。次の衝・最大離角
+- **惑星の動きと逆行**（[`retro.html`](https://apapane-yukinosato.github.io/stars/retro.html)）: 毎日同じ時刻に観測した惑星の見かけの動き。火星の逆行ループなど全惑星
+- **月の満ち欠けカレンダー**（[`moon.html`](https://apapane-yukinosato.github.io/stars/moon.html)）: 月齢・月の出入り・新月/満月の日時
+- **太陽の動きとアナレンマ**（[`sun.html`](https://apapane-yukinosato.github.io/stars/sun.html)）: 日の出入り・昼の長さ・均時差・夏至冬至
+- **流星群カレンダー**（[`meteor.html`](https://apapane-yukinosato.github.io/stars/meteor.html)）: 極大の夜の月明かりと放射点の高さ
+- **光で旅する宇宙**（[`scale.html`](https://apapane-yukinosato.github.io/stars/scale.html)）: 光速で進んだときの到達時間
 
 ## 星空シミュレーター（`sky.html`）
 
@@ -24,15 +32,6 @@
 
 歳差運動による天の北極の移動を、紀元前4000年〜西暦22000年の範囲で再現する別ページです。古代ギリシャ時代の北の空、現在のポラリス、将来の北極星候補（アルデラミン、ベガなど）を見比べられます。計算は Vondrák ら（2011）の長期歳差モデルによります（星の固有運動は含みません）。
 
-## GitHub Pages で公開する
-
-1. このブランチを `main` にマージする
-2. リポジトリの **Settings → Pages** を開く
-3. **Build and deployment** の Source を `Deploy from a branch`、Branch を `main` / `/ (root)` にして Save
-4. 数分後に `https://<ユーザー名>.github.io/stars/` で公開されます
-
-ローカルで確認するには、リポジトリ直下で `python3 -m http.server` を起動して `http://localhost:8000/` を開きます。
-
 ## 構成
 
 | パス | 内容 |
@@ -40,7 +39,8 @@
 | `index.html`, `css/top.css`, `assets/` | トップページ（各シミュレーターへのリンク）とサムネイル |
 | `sky.html`, `css/style.css` | 星空シミュレーターの画面とスタイル |
 | `pole-star.html`, `css/pole.css`, `js/pole.js`, `js/precession.js` | 北極星の移り変わりページ |
-| `js/astro.js` | 恒星時・歳差・太陽/月/惑星の位置・日の出入りの計算 |
+| `planets.html`, `retro.html`, `moon.html`, `sun.html`, `meteor.html`, `scale.html`, `css/pages.css`, `js/{planets,retro,moon,sun,meteor,scale}.js` | 追加の各ページ |
+| `js/astro.js` | 恒星時・歳差・太陽/月/惑星の位置・月相・日の出入りの計算 |
 | `js/app.js` | 描画（Canvas）と操作 |
 | `data/sky-data.js` | 星表・星座線・天の川（`tools/build_data.py` で生成） |
 | `tools/build_data.py` | 元データから `data/sky-data.js` を作り直すスクリプト |

@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#050914">
+  <title>光で旅する宇宙｜月から宇宙の果てまで</title>
+  <meta name="description" content="光の速さで進むと、月・太陽・惑星・星・銀河まで何秒、何年かかるか。夜空の星の光がいつ出発したものかも分かる、宇宙の大きさを体感するページ。">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23050914'/%3E%3Cpath d='M4 16h24' stroke='%23f6d27a' stroke-width='2'/%3E%3Ccircle cx='22' cy='16' r='4' fill='%23fff'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/pole.css">
+  <link rel="stylesheet" href="css/pages.css">
+</head>
+<body>
+  <header class="head">
+    <p class="crumb"><a href="index.html">← トップ</a></p>
+    <h1>光で旅する宇宙</h1>
+    <p class="lead">光は1秒間に約30万km、地球を7周半できる速さです。それでも、宇宙は広く、いちばん近い星まで4年以上かかります。光の旅を1秒から宇宙の年齢（138億年）まで進めて、どの天体に届くかを見てみましょう。</p>
+  </header>
+
+  <section class="ctrl" aria-label="光の旅の操作">
+    <div class="yearbox">
+      <output id="elapsed" class="year" for="slider">—</output>
+      <p id="dist" class="verdict"></p>
+    </div>
+    <input id="slider" type="range" min="0" max="1765" step="1" value="270" aria-label="光が進んだ時間（対数目盛）">
+    <div class="row">
+      <button id="play" type="button" class="accent" aria-pressed="false">▶ 光を走らせる</button>
+      <span class="note">ジャンプ:</span>
+      <span id="jumps" class="row" style="margin:0"></span>
+    </div>
+  </section>
+
+  <section>
+    <div class="plot" style="aspect-ratio: 16 / 6.2"><canvas id="cv" aria-label="光が進んだ時間と天体の位置（対数目盛）"></canvas></div>
+    <p class="note" style="margin-top:6px">横軸は光が進んだ時間で、1目盛りごとに10倍になる「対数目盛」です。金色の線が光の先頭、色のついた天体が、すでに光が届いた天体です。</p>
+  </section>
+
+  <section class="card">
+    <h2>ここまでに届いた天体</h2>
+    <p id="reached" class="note" style="font-size:14px;color:var(--text)"></p>
+    <p id="next" class="note"></p>
+  </section>
+
+  <section class="card">
+    <h2>宇宙の大きさを乗り物で測ると</h2>
+    <p class="note">光でなく、新幹線（時速300km）や探査機（秒速17km、ボイジャーと同程度）で向かったときの所要時間です。</p>
+    <div class="tblwrap">
+      <table class="tbl" id="tbl">
+        <thead><tr><th>天体</th><th class="num">距離</th><th class="num">光なら</th><th class="num">探査機なら</th><th class="num">新幹線なら</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>夜空の星の光は、いつ出発した？</h2>
+    <p class="note">いま目に届いている光は、星を出発した「過去の姿」です。<span id="thisYear"></span>に見える星の光が、何年前に出発したかを示します。</p>
+    <div class="tblwrap">
+      <table class="tbl" id="past">
+        <thead><tr><th>天体</th><th class="num">距離</th><th class="num">光の出発</th><th>そのころ</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <p>距離は代表的な値の概数です（星までの距離は測定により数%〜10%以上の幅があります）。ベテルギウスなど距離に幅のある星は目安です。光の速さは 299,792.458 km/秒、1天文単位（AU）は 149,597,870.7 km、1光年は約9兆4607億kmとして計算しています。「そのころ」は目安で、時代区分は概略です。</p>
+  </footer>
+
+  <script src="js/scale.js"></script>
+</body>
+</html>

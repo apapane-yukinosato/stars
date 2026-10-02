@@ -1,0 +1,82 @@
+/* 追加ページ共通（pole.css と併用） */
+.page-grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.plot { position: relative; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: #060b1c; }
+.plot canvas { display: block; width: 100%; height: 100%; }
+.plot.sq { aspect-ratio: 1 / 1; }
+.plot.wide { aspect-ratio: 16 / 9; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 8px 0 0; color: var(--muted); font-size: 12.5px; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
+.chk { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; cursor: pointer; }
+.chk input { width: 18px; height: 18px; accent-color: var(--accent); }
+input[type="date"], input[type="number"] {
+  min-height: 36px; padding: 6px 8px; background: rgba(255,255,255,0.06);
+  border: 1px solid var(--line); border-radius: 8px; color-scheme: dark;
+}
+.tbl td.num, .tbl th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.tag { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 12px; background: var(--btn); border: 1px solid var(--line); white-space: nowrap; }
+.tag.good { background: rgba(120, 220, 160, 0.16); border-color: rgba(120, 220, 160, 0.5); color: #b6f2cd; }
+.tag.mid { background: rgba(246, 210, 122, 0.14); border-color: rgba(246, 210, 122, 0.5); color: var(--accent); }
+.tag.bad { background: rgba(255, 140, 120, 0.12); border-color: rgba(255, 140, 120, 0.45); color: #ffb3a4; }
+.note { color: var(--muted); font-size: 13px; }
+@media (max-width: 860px) { .page-grid { grid-template-columns: minmax(0, 1fr); } }
+.where { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 4px; font-size: 14px; }
+.where li { display: grid; grid-template-columns: 4em 1fr; gap: 8px; }
+/* ---- 月のカレンダー ---- */
+.cal { border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: var(--card); }
+.dow, .cells { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.dow span { padding: 6px 4px; text-align: center; font-size: 12.5px; color: var(--muted); border-bottom: 1px solid var(--line); }
+.dow .sun, .cell.sun .d { color: #ff9c8a; }
+.dow .sat, .cell.sat .d { color: #8fc2ff; }
+.cell {
+  position: relative; min-height: 112px; padding: 4px 4px 6px; text-align: center; cursor: pointer;
+  border: 0; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line);
+  border-radius: 0; background: transparent; white-space: normal; font-size: 11.5px; line-height: 1.35;
+}
+.cell:nth-child(7n) { border-right: 0; }
+.cell:hover { background: var(--btn); }
+.cell.empty { cursor: default; background: rgba(255,255,255,0.02); }
+.cell.sel { outline: 2px solid var(--accent); outline-offset: -2px; background: rgba(246,210,122,0.1); }
+.cell.today .d { background: var(--accent); color: var(--accent-ink); border-radius: 999px; padding: 0 7px; font-weight: 700; }
+.cell .d { display: inline-block; font-size: 13px; }
+.cell canvas { display: block; width: 36px; height: 36px; margin: 3px auto 2px; }
+.cell .ev { display: block; margin-top: 2px; color: var(--accent); font-weight: 700; font-size: 11px; }
+.cell .age, .cell .rs { display: block; color: var(--muted); font-variant-numeric: tabular-nums; }
+.detail-top { display: flex; gap: 14px; align-items: center; }
+.detail-top canvas { width: 84px; height: 84px; flex: none; }
+.detail-top h3 { margin: 0; font-size: 20px; }
+.kv2 { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; margin: 12px 0 0; font-size: 14px; }
+.kv2 dt { color: var(--muted); } .kv2 dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
+@media (max-width: 860px) {
+  main.page-grid { grid-template-columns: minmax(0, 1fr) !important; }
+  .cell { min-height: 78px; padding: 3px 1px 4px; font-size: 10px; }
+  .cell canvas { width: 26px; height: 26px; }
+  .cell .rs, .cell .age { font-size: 9.5px; }
+  .cell .ev { font-size: 9.5px; }
+}
+.trio { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 860px) { .trio { grid-template-columns: 1fr; } }
+/* ---- 流星群 ---- */
+.mcards { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; margin-top: 16px; }
+.mc { padding: 14px 16px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; }
+.mc.next { border-color: var(--accent); box-shadow: 0 0 0 1px rgba(246,210,122,0.35); }
+.mc h3 { margin: 0; font-size: 17px; display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline; }
+.mc .date { color: var(--accent); font-size: 14px; font-weight: 600; }
+.mc .stars { color: var(--accent); letter-spacing: 2px; }
+.mc .moonrow { display: flex; gap: 10px; align-items: center; margin: 10px 0 6px; }
+.mc .moonrow canvas { width: 38px; height: 38px; flex: none; }
+.mc .moonrow p { margin: 0; font-size: 13px; line-height: 1.5; }
+.mc dl { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; margin: 8px 0 0; font-size: 13px; }
+.mc dt { color: var(--muted); } .mc dd { margin: 0; }
+.mc .tip { margin: 8px 0 0; font-size: 13px; color: var(--muted); }
+#slider { width: 100%; margin: 6px 0 0; accent-color: var(--accent); height: 28px; }
+/* ---- 逆行ページ ---- */
+.charts { display: grid; gap: 14px; }
+.charts.multi { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.charts .cc { position: relative; }
+.charts .cc h3 { margin: 0 0 4px; font-size: 14px; }
+.pchip { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 4px 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--btn); cursor: pointer; user-select: none; }
+.pchip input { position: absolute; opacity: 0; pointer-events: none; }
+.pchip i { width: 11px; height: 11px; border-radius: 50%; display: inline-block; }
+.pchip:has(input:checked) { background: rgba(246,210,122,0.16); border-color: var(--accent); }
+.pchip:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (max-width: 860px) { .charts.multi { grid-template-columns: minmax(0, 1fr); } main.page-grid { grid-template-columns: minmax(0, 1fr) !important; } }

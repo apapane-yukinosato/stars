@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#050914">
+  <title>惑星の動きと逆行｜毎日同じ時刻に観測すると</title>
+  <meta name="description" content="地球から毎日同じ時刻に惑星を観測すると、星座の中をどう動くか。火星の逆行など、水星から海王星まで全惑星の見かけの動きを再現するシミュレーター。">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23050914'/%3E%3Cpath d='M5 20c6-14 14-14 14-6s-8 8-8 0 10-8 16 2' fill='none' stroke='%23ff8a65' stroke-width='2'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/pole.css">
+  <link rel="stylesheet" href="css/pages.css">
+</head>
+<body>
+  <header class="head">
+    <p class="crumb"><a href="index.html">← トップ</a> ／ <a href="planets.html">惑星の位置図</a></p>
+    <h1>惑星の動きと逆行</h1>
+    <p class="lead">地球から毎日同じ時刻に惑星の位置を記録して、星座の中に並べてみると、惑星はふだん西から東へ進みながら、ときどき止まって逆戻りし、またループを描いて進みます。これが「逆行」です。火星・木星・土星・水星・金星・天王星・海王星すべての動きを見られます。</p>
+  </header>
+
+  <section class="ctrl" aria-label="惑星と期間の選択">
+    <div class="yearbox">
+      <output id="curLabel" class="year" for="scrub">—</output>
+      <p id="curSub" class="verdict"></p>
+    </div>
+    <div class="row" id="chips" role="group" aria-label="表示する惑星"></div>
+    <div class="row">
+      <span class="note">かんたん設定:</span>
+      <button type="button" data-preset="mars-next">火星の次の逆行</button>
+      <button type="button" data-preset="mars-2y">火星 2年間</button>
+      <button type="button" data-preset="inner-1y">水星・金星 1年</button>
+      <button type="button" data-preset="all-1y">全惑星 1年</button>
+      <button type="button" data-preset="jup-12y">木星 12年</button>
+    </div>
+    <div class="row">
+      <label class="sel">開始日 <input id="start" type="date" min="1900-01-01" max="2100-12-31"></label>
+      <label class="sel"><span class="vh">期間</span>
+        <select id="len">
+          <option value="270">約9か月</option>
+          <option value="365">1年</option>
+          <option value="730" selected>2年</option>
+          <option value="1095">3年</option>
+          <option value="1825">5年</option>
+          <option value="4380">12年</option>
+        </select>
+      </label>
+      <label class="sel"><span class="vh">表示の見かた</span>
+        <select id="mode">
+          <option value="sky">星座の中での位置</option>
+          <option value="alt">毎日同じ時刻の空（方位・高度）</option>
+        </select>
+      </label>
+      <label class="sel" id="hourWrap" hidden><span class="vh">観測時刻</span><select id="hour"></select></label>
+      <label class="sel" id="placeWrap" hidden><span class="vh">観測地</span>
+        <select id="place">
+          <option value="43.0621,141.3544">札幌</option>
+          <option value="35.6895,139.6917" selected>東京</option>
+          <option value="34.6937,135.5023">大阪</option>
+          <option value="33.5902,130.4017">福岡</option>
+          <option value="26.2124,127.6809">那覇</option>
+        </select>
+      </label>
+      <label class="sel" id="sysWrap"><span class="vh">座標</span>
+        <select id="sys">
+          <option value="auto">座標: 自動</option>
+          <option value="eq">赤道座標（星図）</option>
+          <option value="ec">黄道座標（黄道に沿う）</option>
+        </select>
+      </label>
+      <label class="sel"><span class="vh">図の並べ方</span>
+        <select id="layout">
+          <option value="sep">惑星ごとに分けて表示</option>
+          <option value="one">1枚に重ねて表示</option>
+        </select>
+      </label>
+    </div>
+    <div class="row">
+      <button id="play" type="button" class="accent" aria-pressed="false">▶ 日々の動きを再生</button>
+      <input id="scrub" type="range" min="0" max="730" value="0" aria-label="日付" style="flex:1;min-width:160px;accent-color:var(--accent)">
+    </div>
+  </section>
+
+  <main class="page-grid" style="grid-template-columns: minmax(0,1.5fr) minmax(0,1fr); margin-top:16px">
+    <div>
+      <div id="charts" class="charts"></div>
+      <p class="legend" id="legend"></p>
+      <p class="note" id="chartNote"></p>
+    </div>
+    <div>
+      <section class="card" style="margin-top:0">
+        <h2>なぜ逆行する？（上から見た図）</h2>
+        <label class="sel" style="margin-bottom:8px"><span class="vh">解説する惑星</span><select id="focus"></select></label>
+        <div class="plot sq"><canvas id="cvTop" aria-label="地球と惑星の位置と視線"></canvas></div>
+        <p class="note" id="why" style="margin-top:8px"></p>
+      </section>
+    </div>
+  </main>
+
+  <section class="card">
+    <h2>逆行の期間（選んだ期間内）</h2>
+    <div class="tblwrap">
+      <table class="tbl" id="tbl"><thead><tr><th>惑星</th><th>出来事</th><th>日付（日本時間）</th><th>メモ</th></tr></thead><tbody></tbody></table>
+    </div>
+    <p class="note">日付は計算値で、実際の天文暦と±1日程度のずれがあることがあります。クリックするとその日付に移動します。</p>
+  </section>
+
+  <footer class="foot">
+    <p>惑星の位置は簡易的な軌道計算式（P. Schlyter）による概算です。星座の中での位置は J2000.0 の赤道座標（背景の星と同じ座標）で描いています。逆行は、惑星の黄経（地球から見た黄道上の東西方向の位置）が減っていく期間として判定しています。星表・星座線: d3-celestial（BSD-3-Clause）。</p>
+  </footer>
+
+  <script src="data/sky-data.js"></script>
+  <script src="js/astro.js"></script>
+  <script src="js/retro.js"></script>
+</body>
+</html>
