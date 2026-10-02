@@ -1,15 +1,17 @@
 # 星空ラボ
 
+**公開サイト（GitHub Pages）: <https://apapane-yukinosato.github.io/stars/>**
+
 トップページ（`index.html`）から、次のシミュレーターへ移動できます。
 
-- **星空シミュレーター**（`sky.html`）
-- **北極星の移り変わり**（`pole-star.html`）
-- **惑星の位置図**（`planets.html`）: 好きな日の太陽系を上から見る。次の衝・最大離角
-- **惑星の動きと逆行**（`retro.html`）: 毎日同じ時刻に観測した惑星の見かけの動き。火星の逆行ループなど全惑星
-- **月の満ち欠けカレンダー**（`moon.html`）: 月齢・月の出入り・新月/満月の日時
-- **太陽の動きとアナレンマ**（`sun.html`）: 日の出入り・昼の長さ・均時差・夏至冬至
-- **流星群カレンダー**（`meteor.html`）: 極大の夜の月明かりと放射点の高さ
-- **光で旅する宇宙**（`scale.html`）: 光速で進んだときの到達時間
+- **星空シミュレーター**（[`sky.html`](https://apapane-yukinosato.github.io/stars/sky.html)）
+- **北極星の移り変わり**（[`pole-star.html`](https://apapane-yukinosato.github.io/stars/pole-star.html)）
+- **惑星の位置図**（[`planets.html`](https://apapane-yukinosato.github.io/stars/planets.html)）: 好きな日の太陽系を上から見る。次の衝・最大離角
+- **惑星の動きと逆行**（[`retro.html`](https://apapane-yukinosato.github.io/stars/retro.html)）: 毎日同じ時刻に観測した惑星の見かけの動き。火星の逆行ループなど全惑星
+- **月の満ち欠けカレンダー**（[`moon.html`](https://apapane-yukinosato.github.io/stars/moon.html)）: 月齢・月の出入り・新月/満月の日時
+- **太陽の動きとアナレンマ**（[`sun.html`](https://apapane-yukinosato.github.io/stars/sun.html)）: 日の出入り・昼の長さ・均時差・夏至冬至
+- **流星群カレンダー**（[`meteor.html`](https://apapane-yukinosato.github.io/stars/meteor.html)）: 極大の夜の月明かりと放射点の高さ
+- **光で旅する宇宙**（[`scale.html`](https://apapane-yukinosato.github.io/stars/scale.html)）: 光速で進んだときの到達時間
 
 ## 星空シミュレーター（`sky.html`）
 
