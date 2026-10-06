@@ -13,6 +13,16 @@
 - **流星群カレンダー**（[`meteor.html`](https://apapane-yukinosato.github.io/stars/meteor.html)）: 極大の夜の月明かりと放射点の高さ
 - **光で旅する宇宙**（[`scale.html`](https://apapane-yukinosato.github.io/stars/scale.html)）: 光速で進んだときの到達時間
 
+## アプリとして追加する（ホーム画面・Dock）
+
+サイトは Web アプリ（PWA）として追加でき、追加後はページ間のリンクもアプリの中で開きます（Safari に切り替わりません）。
+
+- **iPhone / iPad**: Safari で開き、共有ボタン →「ホーム画面に追加」
+- **Mac（Safari）**: メニューの「ファイル」→「Dock に追加」
+- **Chrome / Edge**: アドレスバーの「インストール」アイコン
+
+すでに追加済みの場合は、いったん削除してから追加し直してください（追加時の設定が古いまま残るため）。外部サイト（d3-celestial の GitHub など）へのリンクだけは、ブラウザで開きます。
+
 ## 星空シミュレーター（`sky.html`）
 
 今夜の星座や、日本各地で見える星空をブラウザ上で再現する静的Webページです（GitHub Pages でそのまま公開できます）。ビルド不要・外部ライブラリなし・通信はページの読み込みのみです。
@@ -36,6 +46,7 @@
 
 | パス | 内容 |
 | --- | --- |
+| `manifest.webmanifest`, `js/nav.js`, `assets/icons/` | アプリ追加用の設定・アイコン・アプリ内遷移 |
 | `index.html`, `css/top.css`, `assets/` | トップページ（各シミュレーターへのリンク）とサムネイル |
 | `sky.html`, `css/style.css` | 星空シミュレーターの画面とスタイル |
 | `pole-star.html`, `css/pole.css`, `js/pole.js`, `js/precession.js` | 北極星の移り変わりページ |
