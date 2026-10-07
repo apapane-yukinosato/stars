@@ -28,7 +28,8 @@
   /** 背面が向く方向 f と、画面の上方向 u（地球座標）。angle は画面の回転角（度） */
   function basis(alpha, beta, gamma, angle) {
     var R = rotMatrix(alpha, beta, gamma), a = angle * D;
-    return { f: apply(R, [0, 0, -1]), u: apply(R, [Math.sin(a), Math.cos(a), 0]), top: apply(R, [0, 1, 0]) };
+    // upDev: 地球の天頂方向を端末の座標で表したもの（= R の第3行）。端末の縦横の持ち方の判定に使う
+    return { f: apply(R, [0, 0, -1]), u: apply(R, [Math.sin(a), Math.cos(a), 0]), top: apply(R, [0, 1, 0]), upDev: [R[6], R[7], R[8]] };
   }
   /** 方位を delta 度（時計回り）だけ回す */
   function yaw(v, delta) {
@@ -59,6 +60,7 @@
   function Controller(opts) {
     this.opts = opts;
     this.on = false;
+    this.physAngle = null; this._cand = null; this._candT = 0;
     this.f = null; this.u = null;
     this.delta = null;      // 方位補正（磁気偏角＋iOSの基準合わせ）
     this.trim = 0;          // 手動の微調整
@@ -86,11 +88,25 @@
     window.removeEventListener('deviceorientationabsolute', this._abs, true);
     window.removeEventListener('deviceorientation', this._rel, true);
   };
+  /** 端末の傾きから、持ち方（縦・横・逆）を 0/90/180/270 度で判定する。0=縦, 90=横(上端が左), 270=横(上端が右) */
+  Controller.prototype._physical = function (up) {
+    var hx = Math.hypot(up[0], up[1]);
+    if (hx < 0.55) return;                       // 寝かせている・真上や真下を向けているときは判定しない
+    var a = ((Math.atan2(up[0], up[1]) / D) + 360) % 360;
+    var t = (Math.round(a / 90) % 4) * 90;
+    if (Math.abs(wrap180(a - t)) > 32) return;   // 斜めの途中は変えない
+    var now = Date.now();
+    if (this.physAngle === t) { this._cand = null; return; }
+    if (this.physAngle === null || this.physAngle === undefined) { this.physAngle = t; if (this.opts.onOrient) this.opts.onOrient(t); return; }
+    if (this._cand !== t) { this._cand = t; this._candT = now; return; }
+    if (now - this._candT > 350) { this.physAngle = t; this._cand = null; if (this.opts.onOrient) this.opts.onOrient(t); }
+  };
   Controller.prototype._event = function (e, abs) {
     if (!this.on || e.alpha == null || e.beta == null || e.gamma == null) return;
     // 絶対方位のイベントが来る端末では、通常のイベントは使わない
     if (!abs && this.mode === 'absolute') return;
-    var b = basis(e.alpha, e.beta, e.gamma, screenAngle());
+    var b = basis(e.alpha, e.beta, e.gamma, this.opts.angle ? this.opts.angle() : screenAngle());
+    this._physical(b.upDev);
     var lat = this.opts.lat(), lon = this.opts.lon();
     var decl = declination(lat, lon);
     var target = this.delta;
@@ -120,5 +136,5 @@
     this.opts.onUpdate(ortho(f, u), this);
   };
 
-  window.StarSensor = { Controller: Controller, basis: basis, yaw: yaw, ortho: ortho, azimuth: azimuth, declination: declination, rotMatrix: rotMatrix };
+  window.StarSensor = { screenAngle: screenAngle, Controller: Controller, basis: basis, yaw: yaw, ortho: ortho, azimuth: azimuth, declination: declination, rotMatrix: rotMatrix };
 })();
