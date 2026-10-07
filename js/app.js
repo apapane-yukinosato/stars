@@ -9,6 +9,7 @@
   const $ = (id) => document.getElementById(id);
   const clamp = (x, a, b) => (x < a ? a : x > b ? b : x);
   const lerp = (a, b, t) => a + (b - a) * t;
+  const MOBILE_Q = '(max-width: 800px), (max-height: 520px)';
   const FONT = 'system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", Meiryo, sans-serif';
 
   const PLACES = [
@@ -149,6 +150,7 @@
   const P = { dome: true, cx: 0, cy: 0, R: 1, scale: 1, f: [0, 0, 1], r: [1, 0, 0], u: [0, 1, 0] };
   let px = 0, py = 0, pk = 1; // 直前に投影した点の画面座標と「1ラジアンあたりのpx」
   let panelOverlap = 0;
+  let sensorBasis = null, sensorOn = false; // スマホの向きセンサー
 
   function setupProjection() {
     P.dome = state.mode === 'dome';
@@ -158,10 +160,14 @@
     if (P.dome) {
       P.R = Math.max(80, Math.min(usableW - 56, ch - 72) / 2);
     } else {
-      const a = state.az0 * D2R, h = state.alt0 * D2R;
-      P.f = [Math.cos(h) * Math.sin(a), Math.cos(h) * Math.cos(a), Math.sin(h)];
-      P.r = [Math.cos(a), -Math.sin(a), 0];
-      P.u = [-Math.sin(h) * Math.sin(a), -Math.sin(h) * Math.cos(a), Math.cos(h)];
+      if (sensorBasis && sensorOn) {
+        P.f = sensorBasis.f; P.r = sensorBasis.r; P.u = sensorBasis.u;
+      } else {
+        const a = state.az0 * D2R, h = state.alt0 * D2R;
+        P.f = [Math.cos(h) * Math.sin(a), Math.cos(h) * Math.cos(a), Math.sin(h)];
+        P.r = [Math.cos(a), -Math.sin(a), 0];
+        P.u = [-Math.sin(h) * Math.sin(a), -Math.sin(h) * Math.cos(a), Math.cos(h)];
+      }
       P.scale = Math.max(usableW, ch) / 2 / (2 * Math.tan((state.fov * D2R) / 4));
     }
   }
@@ -485,19 +491,25 @@
       return;
     }
     // 広角ビュー: 地平線の下を塗りつぶす（ステレオ投影では地平線は円になる）
-    const mf = P.f[2], mu = P.u[2];
+    // 地平線の法線(天頂方向)をカメラ座標で表す: (右成分, 上成分, 前方成分)
+    const mr = P.r[2], mu = P.u[2], mf = P.f[2];
     const ground = state.opts.realSky ? rgb([skyC[0] * 0.25, skyC[1] * 0.25 + 5, skyC[2] * 0.25 + 4], 0.96) : 'rgba(8,12,16,0.96)';
     ctx.fillStyle = ground;
     ctx.strokeStyle = 'rgba(160,190,255,0.6)'; ctx.lineWidth = 1.5;
     ctx.beginPath();
     if (Math.abs(mf) < 0.002) {
-      const y = P.cy; // 地平線がほぼ水平
-      ctx.rect(-5, y, W + 10, H);
-      ctx.fill();
-      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+      // 地平線がほぼ直線: (mr, mu) の向きの反対側が地面
+      const n = Math.hypot(mr, mu) || 1;
+      const gx = -mr / n, gy = mu / n;      // 地面側の向き（画面座標）
+      const tx = mu / n, ty = mr / n;       // 地平線に沿う向き
+      const L = Math.max(W, H) * 3;
+      ctx.moveTo(P.cx + tx * L, P.cy + ty * L); ctx.lineTo(P.cx - tx * L, P.cy - ty * L);
+      ctx.lineTo(P.cx - tx * L + gx * L, P.cy - ty * L + gy * L); ctx.lineTo(P.cx + tx * L + gx * L, P.cy + ty * L + gy * L);
+      ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(P.cx + tx * L, P.cy + ty * L); ctx.lineTo(P.cx - tx * L, P.cy - ty * L); ctx.stroke();
     } else {
-      const cxp = 0, cyp = (2 * mu) / mf;
-      const rr = Math.sqrt(4 + cyp * cyp) * P.scale;
+      const cxp = (2 * mr) / mf, cyp = (2 * mu) / mf;
+      const rr = Math.sqrt(4 + cxp * cxp + cyp * cyp) * P.scale;
       const ccx = P.cx + cxp * P.scale, ccy = P.cy - cyp * P.scale;
       if (mf > 0) { ctx.rect(-5, -5, W + 10, H + 10); ctx.arc(ccx, ccy, rr, 0, Math.PI * 2); ctx.fill('evenodd'); }
       else { ctx.arc(ccx, ccy, rr, 0, Math.PI * 2); ctx.fill(); }
@@ -570,7 +582,7 @@
       const d = Math.hypot(a.x - b.x, a.y - b.y);
       if (pinchDist > 0) state.fov = clamp(state.fov * (pinchDist / d), 8, 150);
       pinchDist = d;
-    } else {
+    } else if (!sensorOn) {
       const degPerPx = (state.fov / Math.max(cw, ch)) * 1.05;
       state.az0 = (state.az0 - dx * degPerPx + 360) % 360;
       state.alt0 = clamp(state.alt0 + dy * degPerPx, -10, 90);
@@ -638,7 +650,7 @@
     setMode('view', true);
     tween = { az: o.az, alt: clamp(o.alt, 12, 80), fov: 75 };
     dirty = true; renderConList(true);
-    if (window.matchMedia('(max-width: 800px)').matches) setPanel(false);
+    if (window.matchMedia(MOBILE_Q).matches) setPanel(false);
   }
 
   function setMode(m, silent) {
@@ -833,6 +845,71 @@
     }
   }
 
+  // ---------- スマホの向きセンサー ----------
+  const sensor = window.StarSensor ? new window.StarSensor.Controller({
+    lat: () => state.lat, lon: () => state.lon,
+    onUpdate: (b, c) => {
+      sensorBasis = b;
+      state.az0 = window.StarSensor.azimuth(b.f); state.alt0 = Math.asin(clamp(b.f[2], -1, 1)) * R2D; // 終了後も同じ向きで続ける
+      dirty = true;
+      if (c.count % 20 === 1) updateSensorStatus();
+    },
+  }) : null;
+  let wakeLock = null;
+  function updateSensorStatus() {
+    if (!sensor) return;
+    const t = sensor.trim ? `（補正 ${sensor.trim > 0 ? '+' : ''}${sensor.trim}°）` : '';
+    $('sensorStatus').textContent = sensor.mode === 'absolute' ? `コンパス有効${t}`
+      : sensor.mode === 'ios' ? `コンパス有効${t}`
+      : sensor.mode === 'gyro' ? `コンパス未対応: ◀▶で方位を合わせてください${t}`
+      : 'スマホを星空に向けてください';
+  }
+  async function startSensor() {
+    if (!sensor) { toast('このブラウザでは向きセンサーを使えません。'); return; }
+    try {
+      await sensor.start();
+    } catch (e) {
+      toast(e && e.message === 'denied' ? 'センサーの使用が許可されませんでした。設定でモーションと方向へのアクセスを許可してください。' : 'このブラウザでは向きセンサーを使えません。');
+      return;
+    }
+    sensorOn = true;
+    document.body.classList.add('sensing');
+    $('sensorBtn').setAttribute('aria-pressed', 'true'); $('sensorBtn').textContent = '📱 センサー中';
+    $('sensorBar').hidden = false;
+    tween = null; setMode('view', true);
+    state.fov = clamp(Math.min(state.fov, 75), 40, 100);
+    $('btnNow').click(); // 現在の時刻の星空にする
+    setPanel(false);
+    updateSensorStatus();
+    $('hint').textContent = '';
+    try { if (navigator.wakeLock) wakeLock = await navigator.wakeLock.request('screen'); } catch (e) { /* 画面を消さない設定が使えない環境 */ }
+    // 現在地を取得して、その場所の星空にする（許可されなければ今の場所のまま）
+    if (navigator.geolocation) navigator.geolocation.getCurrentPosition((pos) => {
+      state.lat = clamp(pos.coords.latitude, -90, 90); state.lon = clamp(pos.coords.longitude, -180, 180);
+      state.place = 'custom'; ensureCustomOption('現在地'); savePrefs(); applyPlace();
+    }, () => {}, { timeout: 8000, maximumAge: 600000 });
+    setTimeout(() => {
+      if (sensorOn && sensor.count === 0) { toast('センサーの値を取得できません。スマホのブラウザで開いているか、モーションと方向の許可を確認してください。'); stopSensor(); }
+    }, 3000);
+    toast('スマホの背面を向けた方向の星空が表示されます。横向きでも使えます。');
+  }
+  function stopSensor() {
+    if (sensor) sensor.stop();
+    sensorOn = false; sensorBasis = null;
+    document.body.classList.remove('sensing');
+    $('sensorBtn').setAttribute('aria-pressed', 'false'); $('sensorBtn').textContent = '📱 向きで見る';
+    $('sensorBar').hidden = true;
+    setMode(state.mode, true);
+    try { if (wakeLock) { wakeLock.release(); wakeLock = null; } } catch (e) { /* 無視 */ }
+    dirty = true;
+  }
+  if (sensor && (navigator.maxTouchPoints > 0 || 'ontouchstart' in window)) $('sensorBtn').hidden = false;
+  $('sensorBtn').addEventListener('click', () => (sensorOn ? stopSensor() : startSensor()));
+  $('sensorStop').addEventListener('click', stopSensor);
+  $('trimL').addEventListener('click', () => { sensor.trim -= 3; updateSensorStatus(); });
+  $('trimR').addEventListener('click', () => { sensor.trim += 3; updateSensorStatus(); });
+  document.addEventListener('visibilitychange', () => { if (sensorOn && document.visibilityState === 'visible' && navigator.wakeLock) navigator.wakeLock.request('screen').then((w) => { wakeLock = w; }).catch(() => {}); });
+
   // ---------- 起動 ----------
   loadPrefs();
   $('bortle').value = state.bortle;
@@ -849,7 +926,7 @@
   }
   applyPlace();
 
-  const mq = window.matchMedia('(max-width: 800px)');
+  const mq = window.matchMedia(MOBILE_Q);
   function updateOverlap() { panelOverlap = mq.matches ? 0 : panel.offsetWidth; dirty = true; }
   window.addEventListener('resize', () => { resize(); updateOverlap(); });
   (mq.addEventListener ? mq.addEventListener.bind(mq, 'change') : mq.addListener.bind(mq))(updateOverlap);
@@ -857,5 +934,5 @@
   requestAnimationFrame(loop);
 
   // テスト・デバッグ用
-  window.__stars = { state, render, setMode };
+  window.__stars = { state, render, setMode, startSensor, stopSensor, get sensor() { return sensor; } };
 })();
