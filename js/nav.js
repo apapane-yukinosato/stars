@@ -1,6 +1,14 @@
 /* アプリとして追加（ホーム画面／Dock）したとき、同じサイト内のリンクをアプリ内で開く */
 (function () {
   'use strict';
+  // 常に最新の版を使うための Service Worker（https または localhost のときだけ）
+  try {
+    if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register(new URL('sw.js', document.currentScript ? document.currentScript.src : location.href).href).then(function (reg) { reg.update(); }).catch(function () { /* 登録できなくても動作に影響なし */ });
+      });
+    }
+  } catch (e) { /* 無視 */ }
   var standalone = false;
   try {
     standalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;

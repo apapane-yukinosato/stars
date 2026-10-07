@@ -9,6 +9,7 @@
   const $ = (id) => document.getElementById(id);
   const clamp = (x, a, b) => (x < a ? a : x > b ? b : x);
   const lerp = (a, b, t) => a + (b - a) * t;
+  const APP_VERSION = '08c'; // 画面で確認できる版番号（古い版が残っていないかの確認用）
   const MOBILE_Q = '(max-width: 800px), (max-height: 520px)';
   const FONT = 'system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", Meiryo, sans-serif';
 
@@ -912,6 +913,7 @@
     onUpdate: (b, c) => {
       sensorBasis = b;
       state.az0 = window.StarSensor.azimuth(b.f); state.alt0 = Math.asin(clamp(b.f[2], -1, 1)) * R2D; // 終了後も同じ向きで続ける
+      updateRotation(); // 持ち方の判定を取りこぼしても、更新のたびに合わせ直す
       dirty = true;
       if (c.count % 20 === 1) updateSensorStatus();
     },
@@ -919,11 +921,11 @@
   let wakeLock = null;
   function updateSensorStatus() {
     if (!sensor) return;
-    const t = sensor.trim ? `（補正 ${sensor.trim > 0 ? '+' : ''}${sensor.trim}°）` : '';
+    const t = (sensor.trim ? `（補正 ${sensor.trim > 0 ? '+' : ''}${sensor.trim}°）` : '') + (appRot ? ` ・画面回転${appRot}°` : '') + ` ・v${APP_VERSION}`;
     $('sensorStatus').textContent = sensor.mode === 'absolute' ? `コンパス有効${t}`
       : sensor.mode === 'ios' ? `コンパス有効${t}`
       : sensor.mode === 'gyro' ? `コンパス未対応: ◀▶で方位を合わせてください${t}`
-      : 'スマホを星空に向けてください';
+      : `スマホを星空に向けてください ・v${APP_VERSION}`;
   }
   async function startSensor() {
     if (!sensor) { toast('このブラウザでは向きセンサーを使えません。'); return; }
@@ -978,7 +980,7 @@
     document.body.appendChild(dbg);
     setInterval(() => {
       const ang = (screen.orientation && typeof screen.orientation.angle === 'number') ? screen.orientation.angle : window.orientation;
-      dbg.textContent = `表示 ${cw.toFixed(0)}x${ch.toFixed(0)} / 内部 ${canvas.width}x${canvas.height} / 比 ${(cw / ch).toFixed(3)}:${(canvas.width / canvas.height).toFixed(3)} / dpr ${dpr} / 窓 ${innerWidth}x${innerHeight} / OS角度 ${ang} / アプリ回転 ${appRot} / センサー ${sensorOn ? (sensor ? sensor.mode + ' ' + sensor.count : '-') : 'off'}`;
+      dbg.textContent = `表示 ${cw.toFixed(0)}x${ch.toFixed(0)} / 内部 ${canvas.width}x${canvas.height} / 比 ${(cw / ch).toFixed(3)}:${(canvas.width / canvas.height).toFixed(3)} / dpr ${dpr} / 窓 ${innerWidth}x${innerHeight} / OS角度 ${ang} / アプリ回転 ${appRot} / 持ち方 ${sensor ? sensor.physAngle : '-'} / v${APP_VERSION} / センサー ${sensorOn ? (sensor ? sensor.mode + ' ' + sensor.count : '-') : 'off'}`;
     }, 300);
   }
 
