@@ -145,6 +145,15 @@
     canvas.width = Math.round(cw * dpr); canvas.height = Math.round(ch * dpr);
     dirty = true;
   }
+  // 表示サイズと内部の画素数の比率がずれると星が楕円に潰れる。回転直後などで値が古いままにならないよう、毎回照合する。
+  function syncSize() {
+    const d = Math.min(window.devicePixelRatio || 1, 2);
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    if (w !== cw || h !== ch || d !== dpr || canvas.width !== Math.round(w * d) || canvas.height !== Math.round(h * d)) {
+      resize();
+      updateOverlap();
+    }
+  }
 
   // ---------- 投影 ----------
   const P = { dome: true, cx: 0, cy: 0, R: 1, scale: 1, f: [0, 0, 1], r: [1, 0, 0], u: [0, 1, 0] };
@@ -530,6 +539,7 @@
   // ---------- ループ ----------
   let lastTick = performance.now();
   function loop(now) {
+    syncSize();
     const dt = Math.min(0.25, (now - lastTick) / 1000);
     lastTick = now;
     let needs = dirty;
@@ -928,7 +938,13 @@
 
   const mq = window.matchMedia(MOBILE_Q);
   function updateOverlap() { panelOverlap = mq.matches ? 0 : panel.offsetWidth; dirty = true; }
-  window.addEventListener('resize', () => { resize(); updateOverlap(); });
+  const onResize = () => { resize(); updateOverlap(); };
+  window.addEventListener('resize', onResize);
+  // 端末の回転は、イベント直後だと寸法が古いことがあるため、少し遅らせて取り直す
+  window.addEventListener('orientationchange', () => { [0, 120, 400, 900].forEach((t) => setTimeout(syncSize, t)); });
+  if (screen.orientation && screen.orientation.addEventListener) screen.orientation.addEventListener('change', () => { [0, 120, 400, 900].forEach((t) => setTimeout(syncSize, t)); });
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', syncSize);
+  if (window.ResizeObserver) new ResizeObserver(syncSize).observe(canvas);
   (mq.addEventListener ? mq.addEventListener.bind(mq, 'change') : mq.addListener.bind(mq))(updateOverlap);
   resize(); updateOverlap();
   requestAnimationFrame(loop);
