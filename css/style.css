@@ -183,7 +183,7 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
 .noscript { position: fixed; inset: 40% 0 auto; text-align: center; }
 
 /* ---- スマホ幅: パネルを下から出す ---- */
-@media (max-width: 800px) {
+@media (max-width: 800px), (max-height: 520px) {
   :root { --panel-w: 0px; }
   .topbar { right: 0; padding-right: 12px; padding-left: 12px; gap: 8px; }
   .brand h1 { font-size: 15px; }
@@ -213,6 +213,47 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
   .info-card { width: calc(100vw - 32px); }
   .hint { display: none; }
 }
+
+/* 横向きのスマホ（高さが小さい）: 設定パネルは右からのドロワーにする */
+@media (max-height: 520px) and (min-aspect-ratio: 1/1) {
+  .topbar { padding-top: calc(6px + env(safe-area-inset-top)); padding-bottom: 6px; padding-left: calc(12px + env(safe-area-inset-left)); padding-right: calc(12px + env(safe-area-inset-right)); }
+  .brand h1 { font-size: 14px; }
+  .when { display: none; }
+  .panel {
+    top: 0; bottom: 0; left: auto; right: 0;
+    width: min(340px, 60vw); height: auto;
+    border-top: 0; border-left: 1px solid var(--line); border-radius: 0;
+    transform: translateX(105%);
+    padding-right: calc(16px + env(safe-area-inset-right));
+  }
+  .panel.open { transform: none; }
+  .toast { top: calc(48px + env(safe-area-inset-top)); }
+  .info-card { bottom: calc(52px + env(safe-area-inset-bottom)); width: min(320px, 50vw); }
+}
+
+/* ---- スマホの向きセンサー ---- */
+.sensor-btn { display: inline-block; min-height: 36px; padding: 6px 14px; border: 1px solid var(--line); border-radius: 999px; background: rgba(9, 14, 30, 0.7); cursor: pointer; white-space: nowrap; }
+.sensor-btn[hidden] { display: none; }
+.sensor-btn[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: transparent; font-weight: 700; }
+.sensor-bar {
+  position: fixed;
+  left: 50%;
+  bottom: calc(10px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 4;
+  display: flex; align-items: center; gap: 6px;
+  max-width: calc(100vw - 24px);
+  padding: 5px 6px 5px 12px;
+  background: rgba(9, 14, 30, 0.88);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 12px;
+}
+.sensor-bar[hidden] { display: none; }
+.sensor-bar button { min-height: 32px; padding: 4px 10px; border: 1px solid var(--line); border-radius: 999px; background: var(--btn); cursor: pointer; white-space: nowrap; font-size: 12px; }
+.sensor-bar button.stop { background: var(--accent); color: var(--accent-ink); border-color: transparent; font-weight: 700; }
+.sensor-status { color: var(--muted); max-width: 40vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+body.sensing .hint { display: none; }
 
 @media (prefers-reduced-motion: reduce) {
   .panel, .toast { transition: none; }

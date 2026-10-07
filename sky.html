@@ -28,10 +28,17 @@
       <button id="modeDome" class="on" type="button">全天</button>
       <button id="modeView" type="button">広角</button>
     </div>
+    <button id="sensorBtn" class="menu-btn sensor-btn" type="button" aria-pressed="false" hidden>📱 向きで見る</button>
     <button id="menuBtn" class="menu-btn" type="button" aria-controls="panel" aria-expanded="false">設定</button>
   </header>
 
   <div id="hint" class="hint"></div>
+  <div id="sensorBar" class="sensor-bar" hidden role="group" aria-label="スマホの向きセンサーの操作">
+    <span id="sensorStatus" class="sensor-status">センサーを開始しています…</span>
+    <button id="trimL" type="button" aria-label="向きを左へ3度">◀ 3°</button>
+    <button id="trimR" type="button" aria-label="向きを右へ3度">3° ▶</button>
+    <button id="sensorStop" type="button" class="stop">終了</button>
+  </div>
   <div id="toast" class="toast" role="status"></div>
 
   <div id="infoCard" class="info-card" hidden>
@@ -133,6 +140,7 @@
 
   <script src="data/sky-data.js"></script>
   <script src="js/astro.js"></script>
+  <script src="js/sensor.js"></script>
   <script src="js/app.js"></script>
   <script src="js/nav.js"></script>
 </body>
