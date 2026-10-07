@@ -138,18 +138,25 @@
   // ---------- キャンバス ----------
   const canvas = $('sky');
   const ctx = canvas.getContext('2d');
-  let cw = 0, ch = 0, dpr = 1;
+  let cw = 0, ch = 0, dpr = 1, bufSx = 1, bufSy = 1;
+  // 描画先の大きさは、実際に画面に表示されている領域（CSS上の寸法）をそのまま使う。
+  // 内部の画素数は縦横を別々の倍率で対応づけるので、回転直後などに寸法が少しずれても星は引き伸ばされない。
+  function measure() {
+    const r = canvas.getBoundingClientRect();
+    return { w: Math.max(1, r.width), h: Math.max(1, r.height), d: Math.min(window.devicePixelRatio || 1, 2) };
+  }
   function resize() {
-    dpr = Math.min(window.devicePixelRatio || 1, 2);
-    cw = canvas.clientWidth; ch = canvas.clientHeight;
-    canvas.width = Math.round(cw * dpr); canvas.height = Math.round(ch * dpr);
+    const m = measure();
+    dpr = m.d; cw = m.w; ch = m.h;
+    canvas.width = Math.max(1, Math.round(cw * dpr)); canvas.height = Math.max(1, Math.round(ch * dpr));
+    bufSx = canvas.width / cw; bufSy = canvas.height / ch;
     dirty = true;
   }
-  // 表示サイズと内部の画素数の比率がずれると星が楕円に潰れる。回転直後などで値が古いままにならないよう、毎回照合する。
+  // 表示領域・内部画素数・画面密度のどれかが変わったら取り直す（毎フレーム呼ぶ。回転直後の古い値が残らないように）
   function syncSize() {
-    const d = Math.min(window.devicePixelRatio || 1, 2);
-    const w = canvas.clientWidth, h = canvas.clientHeight;
-    if (w !== cw || h !== ch || d !== dpr || canvas.width !== Math.round(w * d) || canvas.height !== Math.round(h * d)) {
+    const m = measure();
+    if (Math.abs(m.w - cw) > 0.5 || Math.abs(m.h - ch) > 0.5 || m.d !== dpr ||
+        canvas.width !== Math.max(1, Math.round(m.w * m.d)) || canvas.height !== Math.max(1, Math.round(m.h * m.d))) {
       resize();
       updateOverlap();
     }
@@ -262,7 +269,7 @@
 
   function render() {
     const W = cw, H = ch;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.setTransform(bufSx, 0, 0, bufSy, 0, 0);
     frame = A.makeFrame(state.t, state.lat, state.lon);
     bodies = A.solarSystem(frame);
     sunAlt = Math.asin(bodies[0].hor[2]) * R2D;
@@ -919,6 +926,17 @@
   $('trimL').addEventListener('click', () => { sensor.trim -= 3; updateSensorStatus(); });
   $('trimR').addEventListener('click', () => { sensor.trim += 3; updateSensorStatus(); });
   document.addEventListener('visibilitychange', () => { if (sensorOn && document.visibilityState === 'visible' && navigator.wakeLock) navigator.wakeLock.request('screen').then((w) => { wakeLock = w; }).catch(() => {}); });
+
+  // ?debug=1 を付けて開くと、表示サイズなどの診断を画面の隅に出す（向き・サイズの不具合の調査用）
+  if (/[?&]debug=1/.test(location.search)) {
+    const dbg = document.createElement('div');
+    dbg.style.cssText = 'position:fixed;left:4px;top:60px;z-index:9;padding:3px 6px;background:rgba(0,0,0,.7);color:#9f9;font:11px/1.4 monospace;pointer-events:none;border-radius:4px';
+    document.body.appendChild(dbg);
+    setInterval(() => {
+      const ang = (screen.orientation && typeof screen.orientation.angle === 'number') ? screen.orientation.angle : window.orientation;
+      dbg.textContent = `表示 ${cw.toFixed(0)}x${ch.toFixed(0)} / 内部 ${canvas.width}x${canvas.height} / 比 ${(cw / ch).toFixed(3)}:${(canvas.width / canvas.height).toFixed(3)} / dpr ${dpr} / 窓 ${innerWidth}x${innerHeight} / 角度 ${ang} / センサー ${sensorOn ? (sensor ? sensor.mode + ' ' + sensor.count : '-') : 'off'}`;
+    }, 300);
+  }
 
   // ---------- 起動 ----------
   loadPrefs();
