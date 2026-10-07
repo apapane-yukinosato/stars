@@ -138,12 +138,55 @@
   // ---------- キャンバス ----------
   const canvas = $('sky');
   const ctx = canvas.getContext('2d');
+  // ---------- 画面の回転（OS が画面を回さないとき用） ----------
+  // 画面の回転ロックがオンだと、スマホを横向きにしても OS は画面を縦向きのままにする。
+  // 向きセンサー中は、スマホの持ち方から横向きと判断して、アプリ側で画面全体を回転させる。
+  let appRot = 0; // アプリが追加で回している角度（0 / 90 / 180 / 270, 時計回り）
+  const norm360 = (a) => ((a % 360) + 360) % 360;
+  function osAngle() { return norm360(window.StarSensor ? window.StarSensor.screenAngle() : 0); }
+  /** 画面上の座標(clientX,Y) → 回転前のレイアウト座標 */
+  function toLocal(X, Y) {
+    const W = window.innerWidth, H = window.innerHeight;
+    if (appRot === 90) return [Y, W - X];
+    if (appRot === 270) return [H - Y, X];
+    if (appRot === 180) return [W - X, H - Y];
+    return [X, Y];
+  }
+  function toLocalDelta(dx, dy) {
+    if (appRot === 90) return [dy, -dx];
+    if (appRot === 270) return [-dy, dx];
+    if (appRot === 180) return [-dx, -dy];
+    return [dx, dy];
+  }
+  function applyRotation(rot) {
+    appRot = rot;
+    const b = document.body, W = window.innerWidth, H = window.innerHeight;
+    if (!rot) {
+      b.classList.remove('app-rotated', 'landscape-ui');
+      ['position', 'left', 'top', 'width', 'height', 'overflow', 'transformOrigin', 'transform'].forEach((k) => { b.style[k] = ''; });
+    } else {
+      const swap = rot === 90 || rot === 270;
+      b.classList.add('app-rotated'); b.classList.toggle('landscape-ui', swap);
+      b.style.position = 'fixed'; b.style.left = '0'; b.style.top = '0'; b.style.overflow = 'hidden';
+      b.style.width = (swap ? H : W) + 'px'; b.style.height = (swap ? W : H) + 'px';
+      b.style.transformOrigin = '0 0';
+      b.style.transform = rot === 90 ? `translate(${W}px, 0) rotate(90deg)` : rot === 270 ? `translate(0, ${H}px) rotate(-90deg)` : `translate(${W}px, ${H}px) rotate(180deg)`;
+    }
+    syncSize(); updateOverlap(); dirty = true;
+  }
+  /** 持ち方(物理)と OS の画面の向きの差から、アプリが回す角度を決める */
+  function updateRotation() {
+    if (!sensorOn || !sensor || sensor.physAngle === null || sensor.physAngle === undefined) { if (appRot) applyRotation(0); return; }
+    const rot = norm360(sensor.physAngle - osAngle());
+    if (rot !== appRot) applyRotation(rot);
+  }
+
   let cw = 0, ch = 0, dpr = 1, bufSx = 1, bufSy = 1;
   // 描画先の大きさは、実際に画面に表示されている領域（CSS上の寸法）をそのまま使う。
   // 内部の画素数は縦横を別々の倍率で対応づけるので、回転直後などに寸法が少しずれても星は引き伸ばされない。
   function measure() {
-    const r = canvas.getBoundingClientRect();
-    return { w: Math.max(1, r.width), h: Math.max(1, r.height), d: Math.min(window.devicePixelRatio || 1, 2) };
+    // 画面全体を回転させている間も正しい寸法になるよう、変形の影響を受けない offsetWidth/Height を使う
+    return { w: Math.max(1, canvas.offsetWidth), h: Math.max(1, canvas.offsetHeight), d: Math.min(window.devicePixelRatio || 1, 2) };
   }
   function resize() {
     const m = measure();
@@ -589,7 +632,7 @@
   canvas.addEventListener('pointermove', (e) => {
     const p = pointers.get(e.pointerId);
     if (!p) return;
-    const dx = e.clientX - p.x, dy = e.clientY - p.y;
+    const [dx, dy] = toLocalDelta(e.clientX - p.x, e.clientY - p.y);
     p.x = e.clientX; p.y = e.clientY;
     dragMoved += Math.abs(dx) + Math.abs(dy);
     if (state.mode !== 'view') return;
@@ -622,8 +665,7 @@
   }, { passive: false });
 
   function handleTap(cx, cy) {
-    const rect = canvas.getBoundingClientRect();
-    const x = cx - rect.left, y = cy - rect.top;
+    const [x, y] = appRot ? toLocal(cx, cy) : (() => { const r = canvas.getBoundingClientRect(); return [cx - r.left, cy - r.top]; })();
     let best = null, bestScore = 24;
     for (const p of pickables) {
       const score = Math.hypot(p.x - x, p.y - y) + p.w;
@@ -865,6 +907,8 @@
   // ---------- スマホの向きセンサー ----------
   const sensor = window.StarSensor ? new window.StarSensor.Controller({
     lat: () => state.lat, lon: () => state.lon,
+    angle: () => norm360(osAngle() + appRot), // 画面の上方向（OS の回転＋アプリの回転）
+    onOrient: () => updateRotation(),
     onUpdate: (b, c) => {
       sensorBasis = b;
       state.az0 = window.StarSensor.azimuth(b.f); state.alt0 = Math.asin(clamp(b.f[2], -1, 1)) * R2D; // 終了後も同じ向きで続ける
@@ -912,7 +956,7 @@
   }
   function stopSensor() {
     if (sensor) sensor.stop();
-    sensorOn = false; sensorBasis = null;
+    sensorOn = false; sensorBasis = null; applyRotation(0);
     document.body.classList.remove('sensing');
     $('sensorBtn').setAttribute('aria-pressed', 'false'); $('sensorBtn').textContent = '📱 向きで見る';
     $('sensorBar').hidden = true;
@@ -934,7 +978,7 @@
     document.body.appendChild(dbg);
     setInterval(() => {
       const ang = (screen.orientation && typeof screen.orientation.angle === 'number') ? screen.orientation.angle : window.orientation;
-      dbg.textContent = `表示 ${cw.toFixed(0)}x${ch.toFixed(0)} / 内部 ${canvas.width}x${canvas.height} / 比 ${(cw / ch).toFixed(3)}:${(canvas.width / canvas.height).toFixed(3)} / dpr ${dpr} / 窓 ${innerWidth}x${innerHeight} / 角度 ${ang} / センサー ${sensorOn ? (sensor ? sensor.mode + ' ' + sensor.count : '-') : 'off'}`;
+      dbg.textContent = `表示 ${cw.toFixed(0)}x${ch.toFixed(0)} / 内部 ${canvas.width}x${canvas.height} / 比 ${(cw / ch).toFixed(3)}:${(canvas.width / canvas.height).toFixed(3)} / dpr ${dpr} / 窓 ${innerWidth}x${innerHeight} / OS角度 ${ang} / アプリ回転 ${appRot} / センサー ${sensorOn ? (sensor ? sensor.mode + ' ' + sensor.count : '-') : 'off'}`;
     }, 300);
   }
 
@@ -959,8 +1003,8 @@
   const onResize = () => { resize(); updateOverlap(); };
   window.addEventListener('resize', onResize);
   // 端末の回転は、イベント直後だと寸法が古いことがあるため、少し遅らせて取り直す
-  window.addEventListener('orientationchange', () => { [0, 120, 400, 900].forEach((t) => setTimeout(syncSize, t)); });
-  if (screen.orientation && screen.orientation.addEventListener) screen.orientation.addEventListener('change', () => { [0, 120, 400, 900].forEach((t) => setTimeout(syncSize, t)); });
+  window.addEventListener('orientationchange', () => { [0, 120, 400, 900].forEach((t) => setTimeout(() => { updateRotation(); syncSize(); }, t)); });
+  if (screen.orientation && screen.orientation.addEventListener) screen.orientation.addEventListener('change', () => { [0, 120, 400, 900].forEach((t) => setTimeout(() => { updateRotation(); syncSize(); }, t)); });
   if (window.visualViewport) window.visualViewport.addEventListener('resize', syncSize);
   if (window.ResizeObserver) new ResizeObserver(syncSize).observe(canvas);
   (mq.addEventListener ? mq.addEventListener.bind(mq, 'change') : mq.addListener.bind(mq))(updateOverlap);
@@ -968,5 +1012,5 @@
   requestAnimationFrame(loop);
 
   // テスト・デバッグ用
-  window.__stars = { state, render, setMode, startSensor, stopSensor, get sensor() { return sensor; } };
+  window.__stars = { state, render, setMode, toLocal, get appRot() { return appRot; }, startSensor, stopSensor, get sensor() { return sensor; } };
 })();
