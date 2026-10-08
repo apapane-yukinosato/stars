@@ -9,7 +9,7 @@
   const $ = (id) => document.getElementById(id);
   const clamp = (x, a, b) => (x < a ? a : x > b ? b : x);
   const lerp = (a, b, t) => a + (b - a) * t;
-  const APP_VERSION = '08c'; // 画面で確認できる版番号（古い版が残っていないかの確認用）
+  const APP_VERSION = '08d'; // 画面で確認できる版番号（古い版が残っていないかの確認用）
   const MOBILE_Q = '(max-width: 800px), (max-height: 520px)';
   const FONT = 'system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", Meiryo, sans-serif';
 
@@ -983,6 +983,9 @@
       dbg.textContent = `表示 ${cw.toFixed(0)}x${ch.toFixed(0)} / 内部 ${canvas.width}x${canvas.height} / 比 ${(cw / ch).toFixed(3)}:${(canvas.width / canvas.height).toFixed(3)} / dpr ${dpr} / 窓 ${innerWidth}x${innerHeight} / OS角度 ${ang} / アプリ回転 ${appRot} / 持ち方 ${sensor ? sensor.physAngle : '-'} / v${APP_VERSION} / センサー ${sensorOn ? (sensor ? sensor.mode + ' ' + sensor.count : '-') : 'off'}`;
     }, 300);
   }
+
+  // Safari のピンチ・ダブルタップによるページ全体の拡大を防ぐ（星空の拡大縮小は独自のピンチ操作で行う）
+  ['gesturestart', 'gesturechange', 'gestureend'].forEach((t) => document.addEventListener(t, (e) => e.preventDefault(), { passive: false }));
 
   // ---------- 起動 ----------
   loadPrefs();
