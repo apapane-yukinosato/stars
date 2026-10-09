@@ -9,7 +9,7 @@
   const $ = (id) => document.getElementById(id);
   const clamp = (x, a, b) => (x < a ? a : x > b ? b : x);
   const lerp = (a, b, t) => a + (b - a) * t;
-  const APP_VERSION = '08d'; // 画面で確認できる版番号（古い版が残っていないかの確認用）
+  const APP_VERSION = '08e'; // 画面で確認できる版番号（古い版が残っていないかの確認用）
   const MOBILE_Q = '(max-width: 800px), (max-height: 520px)';
   const FONT = 'system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", Meiryo, sans-serif';
 
@@ -36,7 +36,7 @@
     t: Date.now(), live: true, playing: true, speed: 600,
     lat: 35.6895, lon: 139.6917, place: 'tokyo',
     mode: 'dome', az0: 180, alt0: 35, fov: 100,
-    bortle: 'sub', sel: null,
+    bortle: 'sub', sel: null, textScale: 1.25,
     opts: { lines: true, conNames: true, starNames: true, milky: true, bodies: true, ecl: true, altaz: false, equ: false, realSky: false },
   };
   let tween = null;
@@ -50,6 +50,7 @@
         state.place = String(p.place || 'custom');
       }
       if (BORTLE[p.bortle]) state.bortle = p.bortle;
+      if (typeof p.textScale === 'number') state.textScale = clamp(p.textScale, 0.8, 2.2);
       if (p.opts) for (const k of OPT_KEYS) if (typeof p.opts[k] === 'boolean') state.opts[k] = p.opts[k];
       if (p.mode === 'view' || p.mode === 'dome') state.mode = p.mode;
     } catch (e) { /* 保存不可の環境では既定値で動く */ }
@@ -57,7 +58,7 @@
   function savePrefs() {
     try {
       localStorage.setItem('stars.prefs.v1', JSON.stringify({
-        lat: state.lat, lon: state.lon, place: state.place, bortle: state.bortle, opts: state.opts, mode: state.mode,
+        lat: state.lat, lon: state.lon, place: state.place, bortle: state.bortle, textScale: state.textScale, opts: state.opts, mode: state.mode,
       }));
     } catch (e) { /* 無視 */ }
   }
@@ -311,6 +312,27 @@
     return lerp(-2, base, Math.pow(dark, 0.7));
   }
 
+  // ---- 文字の描画: 背景の線や天の川に埋もれないよう縁取りを付け、重なる文字は省く ----
+  const labelRects = [];
+  function labelFits(l, t, w, h) {
+    for (const r of labelRects) if (l < r[2] && l + w > r[0] && t < r[3] && t + h > r[1]) return false;
+    return true;
+  }
+  /** 文字を描く。force=false のとき、すでに描いた文字と重なるなら描かずに false を返す */
+  function drawLabel(txt, x, y, align, fill, force) {
+    const w = ctx.measureText(txt).width, h = parseFloat(ctx.font.match(/(\d+(?:\.\d+)?)px/)[1]) * 1.15;
+    const l = align === 'center' ? x - w / 2 : align === 'right' ? x - w : x;
+    const t = y - h / 2;
+    if (!force && !labelFits(l - 2, t, w + 4, h)) return false;
+    labelRects.push([l - 2, t, l + w + 2, t + h]);
+    ctx.textAlign = align; ctx.textBaseline = 'middle';
+    ctx.lineJoin = 'round'; ctx.lineWidth = Math.max(3, h * 0.2); ctx.strokeStyle = 'rgba(3,6,16,0.88)';
+    ctx.strokeText(txt, x, y);
+    ctx.fillStyle = fill; ctx.fillText(txt, x, y);
+    ctx.lineWidth = 1;
+    return true;
+  }
+
   function render() {
     const W = cw, H = ch;
     ctx.setTransform(bufSx, 0, 0, bufSy, 0, 0);
@@ -318,7 +340,7 @@
     bodies = A.solarSystem(frame);
     sunAlt = Math.asin(bodies[0].hor[2]) * R2D;
     setupProjection();
-    pickables.length = 0;
+    pickables.length = 0; labelRects.length = 0;
 
     const real = state.opts.realSky;
     const skyC = real ? skyRGB(sunAlt) : [5, 9, 21];
@@ -429,11 +451,14 @@
     }
     ctx.globalAlpha = 1;
 
-    // 星の名前
+    // 太陽・月・惑星（名前を先に確保して、他の文字が上に重ならないようにする）
+    if (state.opts.bodies) drawBodies(zoomK, real);
+
+    const ts = state.textScale;
+    // 星の名前（明るい星から順に、重なる文字は省く）
     if (state.opts.starNames) {
-      ctx.font = `${Math.round(11 * Math.min(zoomK, 1.3))}px ${FONT}`;
-      ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
-      ctx.fillStyle = `rgba(215,225,255,${0.55 * (real ? Math.max(0.2, darkness) : 1) + 0.2})`;
+      ctx.font = `${Math.round(13.5 * ts)}px ${FONT}`;
+      const vis = real ? Math.max(0.35, darkness) : 1;
       for (const n of starNames) {
         if (n.mag > nameLim) continue;
         const i = n.idx;
@@ -442,26 +467,28 @@
         if (U < 0.02) continue;
         tmp[0] = M[0] * x + M[1] * y + M[2] * z; tmp[1] = M[3] * x + M[4] * y + M[5] * z; tmp[2] = U;
         if (!project(tmp) || px < 0 || px > W || py < 0 || py > H) continue;
-        ctx.fillText(n.ja, px + 6 + Math.max(0, 3.5 - n.mag) * sz, py - 6);
+        drawLabel(n.ja, px + 7 + Math.max(0, 3.5 - n.mag) * sz, py - 7 * ts * 0.8, 'left', `rgba(238,244,255,${0.97 * vis})`, false);
       }
     }
 
-    // 太陽・月・惑星
-    if (state.opts.bodies) drawBodies(zoomK, real);
-
-    // 星座名
+    // 星座名（選んだ星座を最優先。重なる文字は省く）
     if (state.opts.conNames || state.sel) {
-      ctx.font = `${Math.round(12.5 * Math.min(zoomK, 1.35) * (P.dome && P.R < 260 ? 0.88 : 1))}px ${FONT}`;
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.font = `${Math.round(14.5 * ts)}px ${FONT}`;
+      const vis = real ? Math.max(0.35, darkness) : 1;
+      const list = [];
       for (const c of CONS) {
         const selected = state.sel === c.id;
         if (!state.opts.conNames && !selected) continue;
         const v = A.applyMat(M, c.cen, [0, 0, 0]);
         if (v[2] < 0.04) continue;
         if (!project(v) || px < 0 || px > W || py < 0 || py > H) continue;
-        ctx.fillStyle = selected ? 'rgba(255,224,150,1)' : `rgba(150,190,255,${0.7 * (real ? Math.max(0.2, darkness) : 1)})`;
-        ctx.fillText(c.ja, px, py);
-        pickables.push({ x: px, y: py, w: 0, kind: 'con', con: c, hv: v.slice() });
+        list.push({ c, x: px, y: py, v: v.slice(), selected });
+      }
+      list.sort((a, b) => (b.selected - a.selected) || (b.v[2] - a.v[2]));   // 選択中 → 高い位置の星座の順
+      for (const it of list) {
+        const ok = drawLabel(it.c.ja, it.x, it.y, 'center', it.selected ? 'rgba(255,226,150,1)' : `rgba(170,208,255,${0.97 * vis})`, it.selected);
+        pickables.push({ x: it.x, y: it.y, w: 0, kind: 'con', con: it.c, hv: it.v });
+        void ok;
       }
     }
     ctx.restore();
@@ -479,7 +506,7 @@
       if (v[2] < -0.03 || !project(v)) continue;
       if (px < -40 || px > cw + 40 || py < -40 || py > ch + 40) continue;
       const x = px, y = py;
-      ctx.font = `${Math.round(12 * Math.min(zoomK, 1.3))}px ${FONT}`;
+      ctx.font = `${Math.round(14 * state.textScale)}px ${FONT}`;
       ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
       let rad;
       if (b.id === 'sun') {
@@ -500,10 +527,9 @@
         ctx.fillStyle = b.color; ctx.beginPath(); ctx.arc(x, y, rad, 0, 6.2832); ctx.fill();
         ctx.strokeStyle = b.color; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(x, y, rad + 5, 0, 6.2832); ctx.stroke(); ctx.lineWidth = 1;
         ctx.globalAlpha = 1; rad += 5;
-        ctx.font = `bold ${Math.round(13 * Math.min(zoomK, 1.3))}px ${FONT}`;
+        ctx.font = `bold ${Math.round(15 * state.textScale)}px ${FONT}`;
       }
-      ctx.fillStyle = b.id === 'sun' ? '#ffe9a8' : b.id === 'moon' ? '#f1f1e6' : '#ffd9a6';
-      ctx.fillText(b.ja, x + rad + 5, y - rad * 0.4);
+      drawLabel(b.ja, x + rad + 6, y - rad * 0.4, 'left', b.id === 'sun' ? '#ffe9a8' : b.id === 'moon' ? '#f6f4e8' : '#ffe0b0', true);
       pickables.push({ x, y, w: -10, kind: 'body', body: b, hv: v.slice() });
     }
   }
@@ -544,9 +570,8 @@
         project(v);
         const dx = px - P.cx, dy = py - P.cy, d = Math.hypot(dx, dy) || 1;
         const off = main ? 16 : 13;
-        ctx.font = `${main ? 15 : 11}px ${FONT}`;
-        ctx.fillStyle = main ? (az === 0 ? '#ff9c8a' : '#e8edff') : 'rgba(200,210,240,0.7)';
-        ctx.fillText(name, px + (dx / d) * off, py + (dy / d) * off);
+        ctx.font = `${Math.round((main ? 16 : 12) * Math.min(state.textScale, 1.5))}px ${FONT}`;
+        drawLabel(name, px + (dx / d) * off, py + (dy / d) * off, 'center', main ? (az === 0 ? '#ffa592' : '#eef2ff') : 'rgba(210,220,245,0.9)', true);
       }
       return;
     }
@@ -579,9 +604,8 @@
     for (const [az, name, main] of COMPASS) {
       const v = [Math.sin(az * D2R), Math.cos(az * D2R), 0.0];
       if (!project(v) || px < 10 || px > W - 10 || py < 20 || py > H - 4) continue;
-      ctx.font = `${main ? 15 : 11}px ${FONT}`;
-      ctx.fillStyle = main ? (az === 0 ? '#ff9c8a' : '#e8edff') : 'rgba(200,210,240,0.8)';
-      ctx.fillText(name, px, py - 6);
+      ctx.font = `${Math.round((main ? 16 : 12) * Math.min(state.textScale, 1.5))}px ${FONT}`;
+      drawLabel(name, px, py - 9 * Math.min(state.textScale, 1.5), 'center', main ? (az === 0 ? '#ffa592' : '#eef2ff') : 'rgba(210,220,245,0.9)', true);
       ctx.strokeStyle = 'rgba(160,190,255,0.6)'; ctx.lineWidth = 1;
       ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px, py - 4); ctx.stroke();
     }
@@ -813,6 +837,8 @@
     }, () => toast('現在地を取得できませんでした。位置情報の許可を確認してください。'), { timeout: 10000, maximumAge: 600000 });
   });
 
+  $('textSize').value = String(state.textScale);
+  $('textSize').addEventListener('change', (e) => { state.textScale = Number(e.target.value); savePrefs(); dirty = true; });
   $('bortle').addEventListener('change', (e) => { state.bortle = e.target.value; savePrefs(); dirty = true; });
   for (const k of OPT_KEYS) {
     const el = $('o_' + k);
