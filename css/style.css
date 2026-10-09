@@ -238,6 +238,16 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
   .info-card { bottom: calc(52px + env(safe-area-inset-bottom)); width: min(320px, 50vw); }
 }
 
+/* 幅の狭いスマホ（縦持ち）: タイトルが1文字ずつ折り返さないよう、タイトルとボタンを2段にする */
+@media (max-width: 520px) {
+  .topbar { flex-wrap: wrap; row-gap: 6px; padding-top: calc(8px + env(safe-area-inset-top)); }
+  .brand { flex: 1 1 100%; }
+  .brand h1 { display: inline; margin-right: 8px; }
+  .brand .crumb { margin-right: 10px; }
+  .when { display: none; }
+  .topbar > .seg { margin-right: auto; }
+}
+
 /* アプリ側で画面を回している間（回転ロック中に横向きにしたとき）。ビューポート基準の単位は使わず、回転後の枠に対する割合で指定する */
 body.app-rotated { --panel-w: 0px; }
 body.app-rotated .topbar { right: 0; }
