@@ -1,0 +1,27 @@
+/* 宇宙のはじまりページ */
+.plot.illu { aspect-ratio: 16 / 11; background: #05070f; }
+.jumps { gap: 6px; }
+.jumps button { padding: 4px 10px; font-size: 13px; min-height: 32px; }
+.cert { display: inline-block; margin: 0 0 6px; padding: 1px 10px; border-radius: 999px; font-size: 12px; border: 1px solid var(--line); background: var(--btn); }
+.cert.ok { background: rgba(120, 220, 160, 0.16); border-color: rgba(120, 220, 160, 0.5); color: #b6f2cd; }
+.cert.good { background: rgba(246, 210, 122, 0.14); border-color: rgba(246, 210, 122, 0.5); color: var(--accent); }
+.cert.hyp { background: rgba(255, 140, 120, 0.12); border-color: rgba(255, 140, 120, 0.45); color: #ffb3a4; }
+#info h2 { margin: 0 0 2px; font-size: 20px; }
+.esum { margin: 8px 0; line-height: 1.75; }
+.ebul { margin: 8px 0 0; padding-left: 1.2em; display: grid; gap: 6px; font-size: 14px; line-height: 1.7; }
+.ebul li::marker { color: var(--accent); }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }
+.stat { padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: rgba(255, 255, 255, 0.03); }
+.stat span { display: block; color: var(--muted); font-size: 12px; }
+.stat b { display: block; font-size: 17px; font-variant-numeric: tabular-nums; margin-top: 2px; }
+.stat small { color: var(--muted); font-size: 12px; }
+.comp { margin-top: 14px; }
+.compbar { display: flex; height: 26px; border-radius: 8px; overflow: hidden; border: 1px solid var(--line); }
+.compbar i { display: block; height: 100%; min-width: 0; transition: width 0.15s; }
+.complegend { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 8px; font-size: 13px; color: var(--muted); }
+.complegend span::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 3px; background: var(--c); margin-right: 6px; vertical-align: -1px; }
+@media (max-width: 860px) {
+  main.page-grid { grid-template-columns: minmax(0, 1fr) !important; }
+  .plot.illu { aspect-ratio: 4 / 3.4; }
+}
+@media (max-width: 520px) { .scale .hide-narrow { display: none; } }

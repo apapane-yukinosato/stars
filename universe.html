@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#050914">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="星空ラボ">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+  <title>宇宙のはじまりから現在まで｜138億年をスライダーでたどる</title>
+  <meta name="description" content="特異点（ビッグバン）から、インフレーション、元素の誕生、宇宙の晴れ上がり、最初の星、銀河、太陽系、現在の宇宙まで。138億年の歴史を、スライダーを動かしながら図で確かめられます。">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23050914'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%23fff'/%3E%3Ccircle cx='16' cy='16' r='8' fill='none' stroke='%23f6d27a' stroke-width='1.5'/%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='%2394a0c4' stroke-width='1' stroke-dasharray='2 2'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/pole.css?v=20261101a">
+  <link rel="stylesheet" href="css/pages.css?v=20261101a">
+  <link rel="stylesheet" href="css/universe.css?v=20261101a">
+</head>
+<body>
+  <header class="head">
+    <p class="crumb"><a href="index.html">← トップ</a> ／ <a href="scale.html">光で旅する宇宙</a></p>
+    <h1>宇宙のはじまりから現在まで</h1>
+    <p class="lead">宇宙は約138億年前に、とても小さく、とても高温・高密度の状態から始まったと考えられています（ビッグバン）。スライダーを動かして、最初の一瞬から現在までの宇宙の姿を、図と数字で順にたどってみましょう。時間は10倍ごとの目盛りです。最初の1秒の中にも、たくさんの出来事があります。</p>
+  </header>
+
+  <section class="ctrl" aria-label="時間の操作">
+    <div class="yearbox">
+      <output id="timeLabel" class="year" for="slider">—</output>
+      <p id="epochLabel" class="verdict"></p>
+    </div>
+    <input id="slider" type="range" min="0" max="1000" step="1" value="0" aria-label="宇宙の誕生からの時間（10倍ごとの目盛り）">
+    <div class="scale" aria-hidden="true"><span>誕生の瞬間</span><span>1秒</span><span>1年</span><span>100万年</span><span>138億年（現在）</span></div>
+    <div class="row">
+      <button id="prev" type="button">◀ 前の時代</button>
+      <button id="play" type="button" class="accent" aria-pressed="false">▶ 自動で進める</button>
+      <button id="next" type="button">次の時代 ▶</button>
+      <label class="sel"><span class="vh">進む速さ</span>
+        <select id="speed">
+          <option value="12">ゆっくり</option>
+          <option value="24" selected>ふつう</option>
+          <option value="48">はやい</option>
+        </select>
+      </label>
+    </div>
+    <div class="row jumps" id="jumps" aria-label="おもな時点へジャンプ"></div>
+  </section>
+
+  <main class="page-grid" style="grid-template-columns: minmax(0,1.35fr) minmax(0,1fr); margin-top:16px">
+    <figure style="margin:0">
+      <div class="plot illu"><canvas id="cvIllu" aria-label="この時代の宇宙の図"></canvas></div>
+      <figcaption id="illuCap" class="note"></figcaption>
+    </figure>
+    <section class="card" style="margin-top:0" id="info">
+      <p class="cert" id="cert"></p>
+      <h2 id="eName">—</h2>
+      <p id="eRange" class="muted small"></p>
+      <p id="eSummary" class="esum"></p>
+      <ul id="eBullets" class="ebul"></ul>
+    </section>
+  </main>
+
+  <section class="card">
+    <h2>この時点の宇宙</h2>
+    <div class="stats" id="stats"></div>
+    <div class="comp" aria-label="宇宙のエネルギーの内訳">
+      <div class="compbar" id="compbar"></div>
+      <div class="complegend" id="complegend"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>宇宙の歴史（クリックでその時代へ）</h2>
+    <canvas id="cvLine" class="timeline" style="height:120px" aria-label="宇宙の歴史の年表"></canvas>
+    <p class="note small">横軸は誕生からの時間で、10倍ごとに等間隔の対数目盛りです。右端が現在（138億年）。左半分は、わずか1秒より前の出来事です。</p>
+  </section>
+
+  <section class="page-grid" style="margin-top:16px">
+    <div class="card" style="margin-top:0">
+      <h2>温度の変化</h2>
+      <div class="plot" style="aspect-ratio:4/3"><canvas id="cvT" aria-label="宇宙の温度の変化のグラフ"></canvas></div>
+      <p class="note small">縦軸・横軸ともに対数。宇宙が膨張するにつれて、温度は下がり続けます。現在は約2.7K（−270℃）です。</p>
+    </div>
+    <div class="card" style="margin-top:0">
+      <h2>いま見えている範囲の大きさ</h2>
+      <div class="plot" style="aspect-ratio:4/3"><canvas id="cvR" aria-label="現在観測できる範囲の大きさの変化のグラフ"></canvas></div>
+      <p class="note small">「いま私たちが観測できる範囲」が、その時代にはどれほどの大きさだったか。インフレーションで一気に大きくなり、その後も膨張を続けています。</p>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>四つの力の枝分かれ</h2>
+    <div class="plot" style="aspect-ratio:16/6.5"><canvas id="cvTree" aria-label="力の分岐の図"></canvas></div>
+    <p class="note small">はじめは一つだったと考えられている力が、宇宙の温度が下がるにつれて、いまの4つの力に分かれていきました。大統一理論（強い力・弱い力・電磁気力が一つだった時代）は、まだ実験で確かめられていない仮説です。</p>
+  </section>
+
+  <section class="card">
+    <h2>まだ分かっていないこと</h2>
+    <ul class="ebul">
+      <li><b>特異点とビッグバン以前</b>: 時間・空間の始まり（あるいはその前）は、量子重力理論ができるまで分かりません。</li>
+      <li><b>インフレーションの正体</b>: 起こったことは有力ですが、その原因や、直接の証拠（原始重力波）は未発見です。</li>
+      <li><b>なぜ物質が残ったのか</b>: 物質と反物質は同量できたはずなのに、ごくわずかに物質が多く残った理由は未解明です。</li>
+      <li><b>ダークマター（約27%）とダークエネルギー（約68%）</b>: 宇宙の大部分を占めるのに、正体は分かっていません。</li>
+      <li><b>リチウム問題</b>: 原子核合成の理論が予測するリチウム7の量が、観測値より多い問題が残っています。</li>
+    </ul>
+  </section>
+
+  <footer class="foot">
+    <p>数値は標準的な宇宙論モデル（ΛCDM）と、プランク衛星の観測値（2018年）などにもとづく概数です。ごく初期（10⁻¹²秒より前）の時期・温度は理論による推定で、モデルによって異なります。「いま見えている範囲の大きさ」は、現在の観測可能な宇宙（半径約465億光年）を、その時代の膨張率で縮めて求めた目安です。図は理解のためのイメージで、実際の見た目ではありません。</p>
+  </footer>
+
+  <script src="js/universe.js?v=20261101a"></script>
+  <script src="js/nav.js?v=20261101a"></script>
+</body>
+</html>

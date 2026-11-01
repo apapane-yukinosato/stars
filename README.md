@@ -12,6 +12,7 @@
 - **太陽の動きとアナレンマ**（[`sun.html`](https://apapane-yukinosato.github.io/stars/sun.html)）: 日の出入り・昼の長さ・均時差・夏至冬至
 - **流星群カレンダー**（[`meteor.html`](https://apapane-yukinosato.github.io/stars/meteor.html)）: 極大の夜の月明かりと放射点の高さ
 - **光で旅する宇宙**（[`scale.html`](https://apapane-yukinosato.github.io/stars/scale.html)）: 光速で進んだときの到達時間
+- **宇宙のはじまりから現在まで**（[`universe.html`](https://apapane-yukinosato.github.io/stars/universe.html)）: 特異点から現在までの宇宙の歴史を、スライダーと図で確認
 
 ## アプリとして追加する（ホーム画面・Dock）
 
@@ -66,7 +67,7 @@
 | `index.html`, `css/top.css`, `assets/` | トップページ（各シミュレーターへのリンク）とサムネイル |
 | `sky.html`, `css/style.css` | 星空シミュレーターの画面とスタイル |
 | `pole-star.html`, `css/pole.css`, `js/pole.js`, `js/precession.js` | 北極星の移り変わりページ |
-| `planets.html`, `retro.html`, `moon.html`, `sun.html`, `meteor.html`, `scale.html`, `css/pages.css`, `js/{planets,retro,moon,sun,meteor,scale}.js` | 追加の各ページ |
+| `planets.html`, `retro.html`, `moon.html`, `sun.html`, `meteor.html`, `scale.html`, `universe.html`, `css/{pages,universe}.css`, `js/{planets,retro,moon,sun,meteor,scale,universe}.js` | 追加の各ページ |
 | `js/sensor.js` | スマホの向きセンサー（ジャイロ・コンパス）から視線方向を求める |
 | `js/astro.js` | 恒星時・歳差・太陽/月/惑星の位置・月相・日の出入りの計算 |
 | `js/app.js` | 描画（Canvas）と操作 |
